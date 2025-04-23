@@ -1,0 +1,12 @@
+// filepath: app/views/public_activity/post/_create.html.erb
+<div class="bg-gray-800 p-4 rounded-lg text-gray-100 border-l-4 border-teal-500">
+  <% post = activity.trackable %>
+  <% user = activity.owner %>
+  <% if post && user %>
+    <%= link_to user.username, user_path(user), class: "font-semibold text-teal-400 hover:text-teal-300" %>
+    created a new post: <%= link_to truncate(post.caption, length: 50), post_path(post), class: "text-gray-300 hover:underline" %>
+    <span class="block text-xs text-gray-400 mt-1"><%= time_ago_in_words(activity.created_at) %> ago</span>
+  <% else %>
+     <span class="text-gray-500">Activity data incomplete.</span>
+  <% end %>
+</div>

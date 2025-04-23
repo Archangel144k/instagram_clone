@@ -1,0 +1,21 @@
+<!-- filepath: app/views/stories/index.html.erb -->
+<div class="stories-container flex space-x-4 overflow-x-auto p-4 bg-gray-900">
+  <% @stories.each do |story| %>
+    <div class="story-item group relative">
+      <%= link_to story_path(story), class: "block w-20 h-20 rounded-full overflow-hidden border-2 border-teal-500 group-hover:border-teal-300 transition-all duration-300" do %>
+        <% if story.media.content_type.start_with?("image") %>
+          <%= image_tag story.media, class: "w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" %>
+        <% elsif story.media.content_type.start_with?("video") %>
+          <video class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" autoplay muted loop>
+            <source src="<%= url_for(story.media) %>" type="<%= story.media.content_type %>">
+          </video>
+        <% end %>
+      <% end %>
+
+      <!-- User Info Overlay -->
+      <div class="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs text-center py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <%= story.user.username %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,201 @@
+<div class="max-w-2xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold bg-gradient-to-r from-teal-400 to-blue-400 bg-clip-text text-transparent mb-6">Create New Reel</h1>
+  
+  <%= form_with model: @reel, class: "bg-gray-900 rounded-xl p-6 shadow-xl border border-gray-800", local: true, multipart: true do |f| %>
+    <% if @reel.errors.any? %>
+      <div class="bg-red-900/50 border border-red-800/50 text-red-100 p-4 rounded-md mb-6">
+        <h2 class="font-semibold mb-2"><%= pluralize(@reel.errors.count, "error") %> prevented this reel from being saved:</h2>
+        <ul class="list-disc list-inside">
+          <% @reel.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <!-- Video Upload Section -->
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-2">
+        <%= f.label :video, "Upload Video", class: "block text-base font-medium text-white" %>
+        <span class="text-xs text-gray-400">MP4, MOV, up to 60 seconds, max 100MB</span>
+      </div>
+      <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-700 border-dashed rounded-lg bg-gray-800/50 transition-all hover:bg-gray-800 hover:border-teal-700">
+        <div class="space-y-2 text-center" id="uploadWrapper">
+          <svg class="mx-auto h-14 w-14 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <div class="flex flex-col sm:flex-row items-center justify-center text-sm text-gray-400">
+            <label for="reel_video" class="relative cursor-pointer bg-gray-900 rounded-md font-medium text-teal-500 hover:text-teal-400 focus-within:outline-none py-2 px-4">
+              <span>Upload a video</span>
+              <%= f.file_field :video, id: "reel_video", class: "sr-only", accept: "video/mp4,video/quicktime", data: { max_file_size: 100.megabytes } %>
+            </label>
+            <p class="mt-2 sm:mt-0 sm:ml-2">or drag and drop</p>
+          </div>
+          <p class="text-xs text-gray-500">
+            MP4, MOV up to 60 seconds
+          </p>
+        </div>
+        
+        <div id="videoPreview" class="hidden w-full">
+          <video id="preview" controls class="w-full h-auto rounded-lg" playsinline></video>
+          <button type="button" id="changeVideo" class="mt-3 inline-flex items-center px-3 py-1.5 border border-gray-700 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+            Change video
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Caption Section -->
+    <div class="mb-6">
+      <%= f.label :caption, class: "block text-base font-medium text-white mb-2" %>
+      <%= f.text_area :caption, class: "block w-full rounded-lg bg-gray-800 border border-gray-700 text-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-500 focus:ring-opacity-50", rows: 3, placeholder: "Write a caption...", maxlength: 2200 %>
+      <div class="flex justify-between mt-1">
+        <p class="text-xs text-gray-400">Add a caption to your reel (optional)</p>
+        <p id="caption-counter" class="text-xs text-gray-400">0/2200</p>
+      </div>
+    </div>
+
+    <!-- Audio Track Section -->
+    <div class="mb-6">
+      <%= f.label :audio_track, class: "block text-base font-medium text-white mb-2" %>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+          </svg>
+        </div>
+        <%= f.text_field :audio_track, class: "block w-full pl-10 rounded-lg bg-gray-800 border border-gray-700 text-white shadow-sm focus:border-teal-500 focus:ring focus:ring-teal-500 focus:ring-opacity-50", placeholder: "Add artist - song name" %>
+      </div>
+      <p class="mt-1 text-xs text-gray-400">Credit the audio you used (optional)</p>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 border-t border-gray-800">
+      <%= link_to reels_path, class: "px-5 py-2.5 text-center border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors" do %>
+        Cancel
+      <% end %>
+      <%= f.button type: "submit", class: "px-5 py-2.5 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg hover:from-teal-400 hover:to-teal-500 transition-colors shadow-md hover:shadow-lg flex items-center justify-center" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>
+        Post Reel
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Video preview functionality
+    const videoInput = document.getElementById('reel_video');
+    const videoPreview = document.getElementById('videoPreview');
+    const previewElement = document.getElementById('preview');
+    const uploadWrapper = document.getElementById('uploadWrapper');
+    const changeVideoBtn = document.getElementById('changeVideo');
+    const captionField = document.querySelector('textarea[name="reel[caption]"]');
+    const captionCounter = document.getElementById('caption-counter');
+    
+    // Drag and drop functionality
+    const dropZone = document.querySelector('.border-dashed');
+    
+    // Caption counter
+    if (captionField && captionCounter) {
+      captionField.addEventListener('input', function() {
+        const count = this.value.length;
+        captionCounter.textContent = `${count}/2200`;
+        
+        if (count > 2000) {
+          captionCounter.classList.add('text-yellow-500');
+          captionCounter.classList.remove('text-red-500', 'text-gray-400');
+        } else if (count > 2200) {
+          captionCounter.classList.add('text-red-500');
+          captionCounter.classList.remove('text-yellow-500', 'text-gray-400');
+        } else {
+          captionCounter.classList.add('text-gray-400');
+          captionCounter.classList.remove('text-yellow-500', 'text-red-500');
+        }
+      });
+    }
+    
+    // Video selection handling
+    videoInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Basic validation
+      if (!file.type.match('video/mp4') && !file.type.match('video/quicktime')) {
+        alert('Please select an MP4 or MOV video file');
+        return;
+      }
+      
+      if (file.size > 100 * 1024 * 1024) {
+        alert('File size exceeds 100MB limit');
+        return;
+      }
+      
+      // Show preview
+      const url = URL.createObjectURL(file);
+      previewElement.src = url;
+      previewElement.onloadedmetadata = function() {
+        if (this.duration > 60) {
+          alert('Video duration exceeds 60 seconds limit');
+          // Still show preview but warn user
+        }
+      };
+      
+      uploadWrapper.classList.add('hidden');
+      videoPreview.classList.remove('hidden');
+    });
+    
+    // Change video button
+    changeVideoBtn.addEventListener('click', function() {
+      videoPreview.classList.add('hidden');
+      uploadWrapper.classList.remove('hidden');
+      videoInput.value = ''; // Clear selection
+      previewElement.src = '';
+    });
+    
+    // Drag and drop
+    if (dropZone) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+      });
+      
+      function highlight() {
+        dropZone.classList.add('border-teal-500', 'bg-gray-700');
+      }
+      
+      function unhighlight() {
+        dropZone.classList.remove('border-teal-500', 'bg-gray-700');
+      }
+      
+      dropZone.addEventListener('drop', handleDrop, false);
+      
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length) {
+          videoInput.files = files;
+          // Trigger change event manually
+          videoInput.dispatchEvent(new Event('change'));
+        }
+      }
+    }
+  });
+</script>

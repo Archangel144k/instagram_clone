@@ -1,0 +1,22 @@
+<div class="max-w-2xl mx-auto bg-gray-800 rounded-lg shadow-lg p-6">
+  <h1 class="text-2xl font-bold text-teal-400 mb-6">Notifications</h1>
+  
+  <div class="space-y-4">
+    <% if @notifications.any? %>
+      <% @notifications.each do |notification| %>
+        <div class="bg-gray-700 p-4 rounded-lg <%= notification.read? ? 'opacity-70' : 'border-l-4 border-teal-400' %>">
+          <%= render partial: "notifications/#{notification.notifiable_type.underscore}", locals: { notification: notification } %>
+          
+          <div class="flex justify-between items-center mt-2 text-xs text-gray-400">
+            <span><%= time_ago_in_words(notification.created_at) %> ago</span>
+            <% unless notification.read? %>
+              <%= button_to 'Mark as read', mark_as_read_notification_path(notification), method: :patch, class: 'text-teal-400 hover:underline' %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="text-gray-400 text-center py-8">You have no notifications yet.</p>
+    <% end %>
+  </div>
+</div>

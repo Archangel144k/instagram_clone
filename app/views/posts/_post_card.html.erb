@@ -1,0 +1,42 @@
+<%# Individual post card for the masonry grid %>
+<div class="mb-4 break-inside-avoid bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-teal-500/30 transition-shadow duration-300">
+  <%# Post Image %>
+  <%= link_to post_path(post), class: "block overflow-hidden" do %>
+    <%= image_tag post.image, class: "w-full h-auto object-cover transition-transform duration-300 hover:scale-105" %>
+  <% end %>
+
+  <%# Post Details %>
+  <div class="p-4">
+    <% if post.caption.present? %>
+      <p class="text-gray-300 text-sm mb-3 leading-relaxed">
+        <%= truncate(post.caption, length: 80) %>
+      </p>
+    <% end %>
+
+    <%# User Info %>
+    <div class="flex items-center justify-between">
+      <%= link_to user_path(post.user), class: "flex items-center space-x-2 group" do %>
+        <% if post.user.avatar.attached? %>
+          <%= image_tag post.user.avatar_url(size: 28), class: "h-7 w-7 rounded-full object-cover border-2 border-gray-700 group-hover:border-teal-500 transition-colors" %>
+        <% else %>
+          <%= image_tag "https://ui-avatars.com/api/?name=#{post.user.username}&size=28", class: "h-7 w-7 rounded-full object-cover border-2 border-gray-700 group-hover:border-teal-500 transition-colors" %>
+        <% end %>
+        <span class="text-sm font-medium text-gray-300 group-hover:text-teal-400 transition-colors">
+          <%= post.user.username %>
+        </span>
+      <% end %>
+
+      <%# Like and Save Counts %>
+      <div class="flex items-center space-x-3">
+        <span class="flex items-center text-xs text-gray-400">
+          <svg class="h-4 w-4 mr-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+          <%= post.likes.count %>
+        </span>
+        <span class="flex items-center text-xs text-gray-400">
+          <svg class="h-4 w-4 mr-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+          <%= post.post_saves.count %>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

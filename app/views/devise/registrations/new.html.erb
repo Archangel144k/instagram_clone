@@ -1,0 +1,168 @@
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-black">
+  <div class="max-w-md w-full space-y-8">
+    <%# Logo and Heading %>
+    <div class="text-center">
+      <h1 class="text-4xl font-bold text-teal-400 mb-2">BahamaGram</h1>
+      <h2 class="text-xl text-gray-300 font-light">Share island moments with the world</h2>
+    </div>
+    
+    <%# Form Card %>
+    <div class="bg-gray-900 shadow-lg rounded-xl p-8 border border-gray-800">
+      <h3 class="text-2xl font-semibold text-white text-center mb-6">Create your account</h3>
+
+      <%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+        <%= f.error_notification message: f.object.errors.full_messages.to_sentence, class: "p-3 bg-red-900/50 text-red-200 rounded-lg mb-4 text-sm" if f.object.errors.any? %>
+
+        <div class="space-y-5">
+          <%# Username field with @ symbol %>
+          <div class="relative">
+            <%= f.input :username,
+              required: true,
+              placeholder: "username",
+              label: "Username",
+              input_html: { 
+                class: "pl-10 w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              },
+              label_html: { class: "block text-sm font-medium text-gray-300 mb-1" } %>
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 mt-6">
+              <i class="fas fa-at"></i>
+            </div>
+          </div>
+          
+          <%# Email field with icon %>
+          <div class="relative">
+            <%= f.input :email,
+              required: true,
+              placeholder: "your.email@example.com",
+              input_html: { 
+                autocomplete: "email",
+                class: "pl-10 w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              },
+              label_html: { class: "block text-sm font-medium text-gray-300 mb-1" } %>
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 mt-6">
+              <i class="fas fa-envelope"></i>
+            </div>
+          </div>
+          
+          <%# Full Name field with icon %>
+          <div class="relative">
+            <%= f.input :name,
+              required: false,
+              placeholder: "Your full name",
+              input_html: { 
+                class: "pl-10 w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              },
+              label_html: { class: "block text-sm font-medium text-gray-300 mb-1" } %>
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 mt-6">
+              <i class="fas fa-user"></i>
+            </div>
+          </div>
+          
+          <%# Password field with icon and strength indicator %>
+          <div class="relative">
+            <%= f.input :password,
+              required: true,
+              placeholder: "Create a strong password",
+              hint: ("#{@minimum_password_length}+ characters with letters, numbers & symbols"),
+              input_html: { 
+                autocomplete: "new-password", 
+                class: "pl-10 w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent",
+                id: "password-field"
+              },
+              label_html: { class: "block text-sm font-medium text-gray-300 mb-1" },
+              hint_html: { class: "mt-1 text-xs text-gray-400" } %>
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 mt-6">
+              <i class="fas fa-lock"></i>
+            </div>
+          </div>
+          
+          <%# Password confirmation with icon %>
+          <div class="relative">
+            <%= f.input :password_confirmation,
+              required: true,
+              placeholder: "Confirm your password",
+              input_html: { 
+                autocomplete: "new-password", 
+                class: "pl-10 w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              },
+              label_html: { class: "block text-sm font-medium text-gray-300 mb-1" } %>
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 mt-6">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+          </div>
+          
+          <%# Terms and conditions %>
+          <div class="text-xs text-gray-400 mt-4">
+            By signing up, you agree to our <a href="#" class="text-teal-400 hover:underline">Terms of Service</a> and <a href="#" class="text-teal-400 hover:underline">Privacy Policy</a>, including Cookie Use.
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <%= f.button :button, type: :submit, class: "w-full py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-300" do %>
+            <div class="flex items-center justify-center">
+              <i class="fas fa-user-plus mr-2"></i>
+              <span>Create Account</span>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# Social Sign Up Options %>
+      <div class="mt-6">
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-700"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-3 bg-gray-900 text-gray-400">Or continue with</span>
+          </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-3 gap-3">
+          <a href="#" class="w-full py-2.5 px-4 flex justify-center items-center bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <i class="fab fa-google"></i>
+          </a>
+          <a href="#" class="w-full py-2.5 px-4 flex justify-center items-center bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="#" class="w-full py-2.5 px-4 flex justify-center items-center bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <i class="fab fa-twitter"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <%# Login Link %>
+    <div class="bg-gray-900 shadow-lg rounded-xl p-6 text-center border border-gray-800">
+      <p class="text-gray-300">
+        Already have an account?
+        <%= link_to "Log in", new_session_path(resource_name), class: "text-teal-400 hover:text-teal-300 font-medium" %>
+      </p>
+    </div>
+    
+    <%# App Download Links %>
+    <div class="text-center">
+      <p class="text-gray-400 text-sm mb-3">Get the app</p>
+      <div class="flex justify-center space-x-4">
+        <a href="#" class="opacity-80 hover:opacity-100 transition-opacity">
+          <img src="https://www.instagram.com/static/images/appstore-install-badges/badge_ios_english-en.png/180ae7a0bcf7.png" alt="Download on App Store" class="h-10">
+        </a>
+        <a href="#" class="opacity-80 hover:opacity-100 transition-opacity">
+          <img src="https://www.instagram.com/static/images/appstore-install-badges/badge_android_english-en.png/e9cd846dc748.png" alt="Get it on Google Play" class="h-10">
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Optional: Add password strength indicator functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const passwordField = document.getElementById('password-field');
+    if (passwordField) {
+      passwordField.addEventListener('input', function() {
+        // You can add password strength checking logic here
+      });
+    }
+  });
+</script>

@@ -1,0 +1,40 @@
+<div class="max-w-md mx-auto bg-white shadow-md rounded-lg overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="font-bold text-xl text-center text-gray-900">Following</div>
+  </div>
+  
+  <div class="divide-y divide-gray-200">
+    <% if @following.any? %>
+      <% @following.each do |followed| %>
+        <div class="px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center">
+            <%= link_to user_path(followed), class: "flex items-center" do %>
+              <% if followed.avatar.attached? %>
+                <%= image_tag followed.avatar.variant(resize_to_fill: [40, 40]), class: "h-10 w-10 rounded-full mr-4" %>
+              <% else %>
+                <div class="h-10 w-10 rounded-full bg-gray-200 mr-4 flex items-center justify-center">
+                  <svg class="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+              <% end %>
+              
+              <div>
+                <div class="font-medium text-gray-900"><%= followed.username %></div>
+                <div class="text-gray-500 text-sm truncate max-w-xs"><%= followed.name %></div>
+              </div>
+            <% end %>
+          </div>
+          
+          <% if user_signed_in? && current_user != followed %>
+            <%= button_to "Unfollow", user_follow_path(followed), method: :delete, class: "ml-2 px-3 py-1 bg-gray-50 border border-gray-300 rounded text-sm font-medium" %>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="px-6 py-8 text-center text-gray-500">
+        Not following anyone yet
+      </div>
+    <% end %>
+  </div>
+</div>

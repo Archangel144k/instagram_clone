@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  saveable: one
+  saveable_type: Saveable
+
+two:
+  user: two
+  saveable: two
+  saveable_type: Saveable

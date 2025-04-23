@@ -1,0 +1,30 @@
+<!-- filepath: app/views/stories/show.html.erb -->
+<div class="story-view-container flex justify-center items-center h-screen bg-black relative">
+  <!-- Close Button -->
+  <%= link_to stories_path, class: "absolute top-4 left-4 text-white bg-black/50 hover:bg-black/70 rounded-full p-2 transition-all duration-300" do %>
+    <i class="fas fa-times text-lg"></i>
+  <% end %>
+
+  <!-- Story Content -->
+  <div class="story-content max-w-md w-full bg-gray-900 rounded-lg shadow-lg overflow-hidden relative">
+    <% if @story.media.content_type.start_with?("image") %>
+      <%= image_tag @story.media, class: "w-full h-full object-cover" %>
+    <% elsif @story.media.content_type.start_with?("video") %>
+      <video class="w-full h-full object-cover" autoplay muted controls>
+        <source src="<%= url_for(@story.media) %>" type="<%= @story.media.content_type %>">
+      </video>
+    <% end %>
+
+    <!-- Story Info -->
+    <div class="absolute bottom-0 left-0 right-0 bg-black/70 text-gray-300 text-sm p-4">
+      <p class="mb-1">
+        <i class="fas fa-user text-teal-400"></i>
+        Posted by: <%= @story.user.username %>
+      </p>
+      <p>
+        <i class="fas fa-clock text-teal-400"></i>
+        Expires at: <%= @story.expires_at.strftime("%B %d, %Y %H:%M") %>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,190 @@
+<div class="container mx-auto py-8 px-4">
+  <!-- Feed Header with Filter Options -->
+  <div class="flex flex-col md:flex-row items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold text-teal-400 mb-4 md:mb-0">Your Feed</h1>
+
+    <div class="flex items-center space-x-2">
+      <%= link_to posts_path(filter: "latest"), class: "px-4 py-2 rounded-lg #{params[:filter] != 'following' ? 'bg-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}" do %>
+        <i class="fas fa-clock mr-2"></i> Latest
+      <% end %>
+
+      <%= link_to posts_path(filter: "following"), class: "px-4 py-2 rounded-lg #{params[:filter] == 'following' ? 'bg-teal-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}" do %>
+        <i class="fas fa-user-friends mr-2"></i> Following
+      <% end %>
+    </div>
+  </div>
+
+  <% if @posts.present? %>
+    <!-- Masonry Grid for Posts -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <% @posts.each do |post| %>
+        <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+          <!-- Post Card -->
+          <%= render 'post_card', post: post %>
+
+          <!-- Like and Save Buttons -->
+          <div class="p-4 flex items-center justify-between">
+            <!-- Like Button -->
+            <div class="flex items-center space-x-2">
+              <% if user_signed_in? %>
+                <% if current_user.likes?(post) %>
+                  <%= button_to like_post_path(post), method: :delete, remote: true, class: "like-button text-red-500 hover:scale-110 transition-transform" do %>
+                    <i class="fas fa-heart text-xl"></i>
+                  <% end %>
+                <% else %>
+                  <%= button_to like_post_path(post), method: :post, remote: true, class: "like-button text-gray-400 hover:text-red-500 hover:scale-110 transition-transform" do %>
+                    <i class="far fa-heart text-xl"></i>
+                  <% end %>
+                <% end %>
+              <% else %>
+                <i class="far fa-heart text-gray-500 text-xl"></i>
+              <% end %>
+              <span class="text-sm text-gray-400"><%= post.likes.count %> <%= 'like'.pluralize(post.likes.count) %></span>
+            </div>
+
+            <!-- Save Button -->
+            <div class="flex items-center space-x-2">
+              <% if user_signed_in? %>
+                <% if current_user.saved?(post) %>
+                  <%= button_to save_post_path(post), method: :delete, remote: true, class: "save-button text-teal-500 hover:scale-110 transition-transform" do %>
+                    <i class="fas fa-bookmark text-xl"></i>
+                  <% end %>
+                <% else %>
+                  <%= button_to save_post_path(post), method: :post, remote: true, class: "save-button text-gray-400 hover:text-teal-500 hover:scale-110 transition-transform" do %>
+                    <i class="far fa-bookmark text-xl"></i>
+                  <% end %>
+                <% end %>
+              <% else %>
+                <i class="far fa-bookmark text-gray-500 text-xl"></i>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Load More / Pagination -->
+    <div class="flex justify-center mt-8">
+      <% if defined?(@posts.next_page) %>
+        <% if @posts.next_page %>
+          <%= link_to_next_page @posts, 'Load More', class: 'pagination bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center', remote: true %>
+        <% else %>
+          <p class="text-gray-500 text-center">You've reached the end!</p>
+        <% end %>
+      <% else %>
+        <p class="text-gray-500 text-center">No more posts to load</p>
+      <% end %>
+    </div>
+  <% else %>
+    <!-- Empty State with Illustration -->
+    <div class="bg-gray-800 rounded-lg shadow-lg p-10 text-center max-w-xl mx-auto">
+      <div class="text-gray-400 mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-24 w-24 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <h3 class="text-xl font-semibold mb-2">No posts in your feed yet</h3>
+        <p class="mb-6">Start by following users or create your own post!</p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <%= link_to new_post_path, class: "bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center justify-center" do %>
+            <i class="fas fa-plus mr-2"></i> Create Post
+          <% end %>
+          <%= link_to explore_posts_path, class: "bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center justify-center" do %>
+            <i class="fas fa-compass mr-2"></i> Explore
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%# Notifications Panel %>
+<div class="max-w-2xl mx-auto mt-12 mb-8 px-4">
+  <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+    <%# Notifications Header %>
+    <div class="bg-gray-700 px-6 py-4 border-b border-gray-600 flex justify-between items-center">
+      <h2 class="text-xl font-bold text-teal-400 flex items-center">
+        <i class="fas fa-bell mr-2"></i> Notifications
+      </h2>
+      <% if @notifications.present? %>
+        <%= link_to mark_all_as_read_notifications_path, method: :post, class: "text-sm text-gray-300 hover:text-teal-400" do %>
+          <i class="fas fa-check-double mr-1"></i> Mark all as read
+        <% end %>
+      <% end %>
+    </div>
+    
+    <%# Notifications Content %>
+    <div class="p-4">
+      <% if @notifications.present? %>
+        <div class="space-y-4 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
+          <% @notifications.each do |note| %>
+            <div class="bg-gray-700 p-4 rounded-lg text-gray-100 <%= note.read? ? '' : 'border-l-4 border-teal-400' %> hover:bg-gray-650 transition-colors flex items-start">
+              <%# Avatar %>
+              <div class="flex-shrink-0 mr-3">
+                <% if note.actor && note.actor.avatar.attached? %>
+                  <%= image_tag note.actor.avatar_url(size: 40), class: "h-10 w-10 rounded-full object-cover" %>
+                <% else %>
+                  <div class="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center">
+                    <i class="fas fa-user text-gray-400"></i>
+                  </div>
+                <% end %>
+              </div>
+              
+              <%# Content %>
+              <div class="flex-grow">
+                <div class="font-medium">
+                  <%= note.message %>
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                  <span class="text-xs text-gray-400">
+                    <%= time_ago_in_words(note.created_at) %> ago
+                  </span>
+                  
+                  <% unless note.read? %>
+                    <%= button_to mark_as_read_notification_path(note), method: :patch, class: "text-xs text-teal-400 hover:text-teal-300" do %>
+                      Mark as read
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        
+        <%# View All Link %>
+        <div class="mt-4 text-center">
+          <%= link_to notifications_path, class: "inline-block text-teal-400 hover:text-teal-300" do %>
+            View all notifications <i class="fas fa-arrow-right ml-1"></i>
+          <% end %>
+        </div>
+      <% else %>
+        <%# Empty Notifications State %>
+        <div class="py-8 text-center text-gray-400">
+          <i class="fas fa-bell-slash text-3xl mb-3"></i>
+          <p>You don't have any notifications yet.</p>
+          <p class="text-sm mt-2">Notifications will appear here when users interact with your posts.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%# Add some custom CSS for scrollbars %>
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #374151;
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #5f6e83;
+  }
+</style>

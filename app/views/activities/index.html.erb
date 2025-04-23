@@ -1,0 +1,17 @@
+<div class="max-w-2xl mx-auto py-8">
+  <h1 class="text-2xl font-bold text-teal-400 mb-6">Activity Feed</h1>
+
+  <% if @activities.present? %>
+    <div class="space-y-4">
+      <% @activities.each do |activity| %>
+        <%# Render a partial based on the activity type %>
+        <%= render partial: "public_activity/#{activity.trackable_type.underscore}/#{activity.key.split('.').last}", locals: { activity: activity } %>
+      <% end %>
+      <%# Add pagination links here %>
+    </div>
+  <% else %>
+    <div class="bg-gray-800 rounded-lg p-6 text-center text-gray-400">
+      No activity from your network yet.
+    </div>
+  <% end %>
+</div>

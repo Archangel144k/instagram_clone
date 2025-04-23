@@ -1,0 +1,59 @@
+<div class="max-w-lg mx-auto bg-gray-900 shadow-lg rounded-lg overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-700">
+    <h1 class="text-2xl font-bold text-teal-400 text-center">Edit Profile</h1>
+  </div>
+
+  <% if @user.errors.any? %>
+    <div class="bg-red-500 text-white p-4 rounded-lg mb-6">
+      <h2 class="font-bold mb-2">There were errors with your submission:</h2>
+      <ul class="list-disc list-inside">
+        <% @user.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form_with model: @user, local: true, class: "p-6 space-y-6" do |f| %>
+    <%# Username Field %>
+    <div>
+      <%= f.label :username, "Username", class: "block text-sm font-medium text-gray-300 mb-2" %>
+      <%= f.text_field :username, placeholder: "Enter your username", class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
+      <p class="text-sm text-gray-400 mt-1">Your unique username for the platform.</p>
+    </div>
+
+    <%# Email Field %>
+    <div>
+      <%= f.label :email, "Email", class: "block text-sm font-medium text-gray-300 mb-2" %>
+      <%= f.email_field :email, placeholder: "Enter your email", class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
+      <p class="text-sm text-gray-400 mt-1">We'll never share your email with anyone else.</p>
+    </div>
+
+    <%# Bio Field %>
+    <div>
+      <%= f.label :bio, "Bio", class: "block text-sm font-medium text-gray-300 mb-2" %>
+      <%= f.text_area :bio, rows: 4, placeholder: "Tell us about yourself...", class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
+      <p class="text-sm text-gray-400 mt-1">Share a little about yourself for your profile.</p>
+    </div>
+
+    <%# Website Field %>
+    <div>
+      <%= f.label :website, "Website", class: "block text-sm font-medium text-gray-300 mb-2" %>
+      <%= f.url_field :website, placeholder: "Enter your website URL", class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
+      <p class="text-sm text-gray-400 mt-1">Optional. Add a link to your personal website or portfolio.</p>
+    </div>
+
+    <%# Avatar Upload Field %>
+    <div>
+      <%= f.label :avatar, "Profile Picture", class: "block text-sm font-medium text-gray-300 mb-2" %>
+      <%= f.file_field :avatar, class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
+      <p class="text-sm text-gray-400 mt-1">Upload a profile picture to personalize your account.</p>
+    </div>
+
+    <%# Action Buttons %>
+    <div class="flex justify-between items-center">
+      <%= link_to "Cancel", user_path(@user), class: "px-6 py-2 bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2" %>
+      <%= f.submit "Save Changes", class: "px-6 py-2 bg-teal-500 text-white font-semibold rounded-lg hover:bg-teal-600 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" %>
+    </div>
+  <% end %>
+</div>

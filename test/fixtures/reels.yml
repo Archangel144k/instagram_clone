@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  caption: MyText
+  user: one
+  duration: 1.5
+
+two:
+  caption: MyText
+  user: two
+  duration: 1.5

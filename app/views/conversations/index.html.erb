@@ -1,0 +1,30 @@
+<div class="max-w-4xl mx-auto py-8 px-4">
+  <h1 class="text-2xl font-bold text-teal-400 mb-6">Your Conversations</h1>
+
+  <% if @conversations.any? %>
+    <div class="space-y-4">
+      <% @conversations.each do |conversation| %>
+        <% other_user = conversation.other_user(current_user) %>
+        <div class="bg-gray-800 p-4 rounded-lg shadow-md flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <%# Display the other user's avatar and username %>
+            <%= link_to user_path(other_user), class: "flex items-center space-x-2 group" do %>
+              <%= image_tag other_user.avatar_url(size: 40), class: "h-10 w-10 rounded-full object-cover border-2 border-gray-700 group-hover:border-teal-400 transition-colors" %>
+              <span class="text-gray-300 group-hover:text-teal-400 font-medium">
+                <%= other_user.username %>
+              </span>
+            <% end %>
+          </div>
+          <div>
+            <%# Link to the conversation %>
+            <%= link_to "View", conversation_path(conversation), class: "px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-400">
+      You have no conversations yet. Start one by visiting a user's profile and clicking "Message".
+    </div>
+  <% end %>
+</div>

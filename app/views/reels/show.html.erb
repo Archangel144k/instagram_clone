@@ -1,0 +1,594 @@
+<!-- filepath: app/views/reels/show.html.erb -->
+<div class="fixed inset-0 bg-gradient-to-br from-gray-950 to-black flex items-center justify-center">
+  <!-- Video Container with Improved Controls -->
+  <div class="h-[95vh] max-w-md mx-auto flex items-center relative overflow-hidden rounded-lg shadow-2xl">
+    <% if @reel.video.attached? %>
+      <!-- Progressive Video Loading with Placeholder -->
+      <div class="absolute inset-0 flex items-center justify-center bg-gray-900" id="video-placeholder">
+        <div class="w-16 h-16">
+          <svg class="animate-spin text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Main Video with Enhanced Controls -->
+      <video 
+        id="reelVideo" 
+        preload="metadata"
+        loop
+        playsinline
+        class="max-w-full max-h-full mx-auto object-contain opacity-0 transition-opacity duration-500"
+        style="background: rgba(0,0,0,0.7);"
+        poster="<%= rails_blob_url(@reel.video) if @reel.video.attached? %>">
+        <source src="<%= url_for(@reel.video) %>" type="<%= @reel.video.content_type %>">
+        <p class="text-white text-center p-4">Your browser doesn't support video playback.</p>
+      </video>
+      
+      <!-- Custom Video Controls -->
+      <div id="customControls" class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <button id="playPauseBtn" class="w-20 h-20 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center">
+          <i class="fas fa-play text-white text-3xl transition-transform duration-200"></i>
+        </button>
+      </div>
+      
+      <!-- Progress Bar -->
+      <div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-800">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-teal-500 to-blue-500 w-0 transition-all"></div>
+      </div>
+      
+      <!-- Video overlay gradient for better text visibility -->
+      <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/0 to-black/80 pointer-events-none"></div>
+    <% else %>
+      <div class="bg-gray-900 p-8 rounded-lg text-center">
+        <i class="fas fa-film text-5xl text-gray-600 mb-4"></i>
+        <p class="text-white text-xl">No video attached to this reel</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Top Navigation Bar -->
+<div class="fixed top-0 inset-x-0 p-4 flex items-center z-10">
+  <%= link_to reels_path, class: "bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/10 hover:bg-black/70 transition-all hover:scale-105" do %>
+    <i class="fas fa-arrow-left"></i>
+  <% end %>
+  
+  <div class="ml-4 text-white text-lg font-semibold hidden sm:block">
+    <span class="bg-gradient-to-r from-teal-400 to-blue-500 bg-clip-text text-transparent">BahamaGram</span>
+  </div>
+  
+  <div class="ml-auto flex items-center space-x-3">
+    <button id="fullscreenBtn" class="bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/10 hover:bg-black/70 hover:scale-105 transition-all">
+      <i class="fas fa-expand"></i>
+    </button>
+    
+    <button id="soundToggle" class="bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/10 hover:bg-black/70 hover:scale-105 transition-all">
+      <i class="fas fa-volume-mute"></i>
+    </button>
+    
+    <% if user_signed_in? && current_user == @reel.user %>
+      <div class="relative" x-data="{ open: false }">
+        <button @click="open = !open" class="bg-black/50 text-white p-3 rounded-full backdrop-blur-md border border-white/10 hover:bg-black/70 hover:scale-105 transition-all">
+          <i class="fas fa-ellipsis-v"></i>
+        </button>
+        
+        <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-gray-900 rounded-md shadow-lg py-1 border border-gray-800 z-50" 
+             x-transition:enter="transition ease-out duration-100" 
+             x-transition:enter-start="transform opacity-0 scale-95" 
+             x-transition:enter-end="transform opacity-100 scale-100">
+          <%= link_to edit_reel_path(@reel), class: "block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white" do %>
+            <i class="far fa-edit mr-2"></i> Edit reel
+          <% end %>
+          <%= button_to reel_path(@reel), method: :delete, data: { confirm: "Are you sure you want to delete this reel?" }, class: "w-full text-left block px-4 py-2 text-sm text-red-400 hover:bg-gray-800 hover:text-red-300" do %>
+            <i class="far fa-trash-alt mr-2"></i> Delete reel
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Right Sidebar for Actions -->
+<div class="absolute right-4 md:right-8 bottom-32 flex flex-col space-y-6 items-center z-10">
+  <!-- Like Button with Improved Animation -->
+  <% if user_signed_in? && current_user.likes?(@reel) %>
+    <%= button_to like_reel_path(@reel), method: :delete, class: "flex flex-col items-center group relative", id: "likeButton" do %>
+      <div class="bg-black/50 text-red-500 p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:scale-110 transition-all relative">
+        <i class="fas fa-heart text-xl"></i>
+        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 animate-ping-once hidden" id="heartPing">
+          <i class="fas fa-heart text-[8px] text-white"></i>
+        </span>
+      </div>
+      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm"><%= @reel.likes.count %></span>
+    <% end %>
+  <% else %>
+    <%= button_to like_reel_path(@reel), method: :post, class: "flex flex-col items-center group relative", id: "likeButton" do %>
+      <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-red-500 group-hover:scale-110 transition-all relative">
+        <i class="fas fa-heart text-xl"></i>
+      </div>
+      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm"><%= @reel.likes.count %></span>
+    <% end %>
+  <% end %>
+  
+  <!-- Comment Button with Notification Dot -->
+  <button class="flex flex-col items-center group" id="commentToggle">
+    <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-teal-400 group-hover:scale-110 transition-all relative">
+      <i class="fas fa-comment text-xl"></i>
+      <% if @reel.comments.where('created_at > ?', 24.hours.ago).any? %>
+        <span class="absolute -top-1 -right-1 w-3 h-3 bg-teal-500 rounded-full"></span>
+      <% end %>
+    </div>
+    <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm"><%= @reel.comments.count %></span>
+  </button>
+  
+  <!-- Save Button -->
+  <% if user_signed_in? && current_user.saved?(@reel) %>
+    <%= button_to save_reel_path(@reel), method: :delete, class: "flex flex-col items-center group" do %>
+      <div class="bg-black/50 text-teal-400 p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:scale-110 transition-all">
+        <i class="fas fa-bookmark text-xl"></i>
+      </div>
+      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Saved</span>
+    <% end %>
+  <% else %>
+    <%= button_to save_reel_path(@reel), method: :post, class: "flex flex-col items-center group" do %>
+      <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-teal-400 group-hover:scale-110 transition-all">
+        <i class="far fa-bookmark text-xl"></i>
+      </div>
+      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Save</span>
+    <% end %>
+  <% end %>
+  
+  <!-- Share Button with Extended Options -->
+  <div class="relative" x-data="{ showShareOptions: false }">
+    <button class="flex flex-col items-center group" @click="showShareOptions = !showShareOptions" id="shareButton">
+      <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-blue-400 group-hover:scale-110 transition-all">
+        <i class="fas fa-share text-xl"></i>
+      </div>
+      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Share</span>
+    </button>
+    
+    <div x-show="showShareOptions" @click.away="showShareOptions = false" 
+         class="absolute right-16 bottom-0 bg-gray-900/90 backdrop-blur-md rounded-lg border border-gray-800 p-2 z-20 w-48"
+         x-transition:enter="transition ease-out duration-200" 
+         x-transition:enter-start="opacity-0 scale-95" 
+         x-transition:enter-end="opacity-100 scale-100">
+      <button class="w-full flex items-center p-2 hover:bg-gray-800 rounded text-sm text-gray-300 hover:text-white" data-share-option="copy">
+        <i class="far fa-copy mr-2 text-blue-400"></i> Copy link
+      </button>
+      <button class="w-full flex items-center p-2 hover:bg-gray-800 rounded text-sm text-gray-300 hover:text-white" data-share-option="whatsapp">
+        <i class="fab fa-whatsapp mr-2 text-green-500"></i> WhatsApp
+      </button>
+      <button class="w-full flex items-center p-2 hover:bg-gray-800 rounded text-sm text-gray-300 hover:text-white" data-share-option="twitter">
+        <i class="fab fa-twitter mr-2 text-blue-400"></i> Twitter
+      </button>
+      <button class="w-full flex items-center p-2 hover:bg-gray-800 rounded text-sm text-gray-300 hover:text-white" data-share-option="facebook">
+        <i class="fab fa-facebook mr-2 text-blue-600"></i> Facebook
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Info Bar -->
+<div class="absolute bottom-0 left-0 right-0 p-5 z-10">
+  <div class="flex items-center">
+    <%= link_to user_path(@reel.user), class: "flex items-center group" do %>
+      <div class="relative">
+        <% if @reel.user.avatar.attached? %>
+          <%= image_tag @reel.user.avatar_url(size: 48), class: "w-12 h-12 rounded-full object-cover border-2 border-teal-500 group-hover:border-teal-300 transition-all" %>
+        <% else %>
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center border-2 border-teal-500 group-hover:border-teal-300 transition-all">
+            <span class="text-white font-bold text-lg"><%= @reel.user.username[0].upcase %></span>
+          </div>
+        <% end %>
+        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-teal-500 rounded-full flex items-center justify-center border-2 border-black">
+          <i class="fas fa-plus text-white text-xs"></i>
+        </div>
+      </div>
+      <div class="ml-3">
+        <div class="font-semibold text-white group-hover:text-teal-400 transition-colors"><%= @reel.user.username %></div>
+        <div class="text-xs text-gray-300"><%= time_ago_in_words(@reel.created_at) %> ago</div>
+      </div>
+    <% end %>
+    
+    <% if user_signed_in? && current_user != @reel.user %>
+      <% if current_user.following?(@reel.user) %>
+        <%= button_to user_follow_path(@reel.user), method: :delete, class: "ml-auto bg-gray-800/80 hover:bg-gray-700/80 text-white text-sm px-4 py-2 rounded-full backdrop-blur-sm transition-all" do %>
+          <i class="fas fa-user-check mr-1"></i> Following
+        <% end %>
+      <% else %>
+        <%= button_to user_follow_path(@reel.user), method: :post, class: "ml-auto bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 text-white text-sm px-5 py-2 font-medium rounded-full shadow-lg transition-all animate-pulse-subtle" do %>
+          <i class="fas fa-user-plus mr-1"></i> Follow
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+  
+  <!-- Caption with Hashtag Detection -->
+  <% if @reel.caption.present? %>
+    <div class="mt-3 text-white text-sm bg-black/30 backdrop-blur-sm p-3 rounded-lg">
+      <%= @reel.caption.to_s.gsub(/#(\w+)/) do |match| 
+            tag = $1
+            link_to(match, "/tags/#{tag}", class: "text-teal-400 hover:underline")
+          end.html_safe
+      %>
+    </div>
+  <% end %>
+  
+  <!-- Enhanced Audio Track Display -->
+  <% if @reel.audio_track.present? %>
+    <div class="mt-3 flex items-center text-white text-sm bg-black/30 backdrop-blur-sm py-2 px-3 rounded-full overflow-hidden">
+      <div class="mr-2 relative">
+        <div class="animate-spin-slow w-6 h-6 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full flex items-center justify-center">
+          <div class="w-2 h-2 bg-black rounded-full"></div>
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center animate-none">
+          <div class="w-2 h-2 bg-black rounded-full"></div>
+        </div>
+      </div>
+      
+      <div class="truncate max-w-[180px] animate-marquee">
+        <span class="inline-block whitespace-nowrap"><%= @reel.audio_track %></span>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Comments Drawer (Enhanced) -->
+<div id="commentDrawer" class="fixed inset-y-0 right-0 max-w-sm w-full bg-gray-900/95 backdrop-blur-md transform translate-x-full transition-transform duration-300 ease-in-out overflow-hidden flex flex-col z-30 border-l border-gray-800">
+  <div class="p-4 border-b border-gray-800 flex items-center sticky top-0 bg-gray-900 z-10">
+    <h3 class="text-lg font-semibold text-white">Comments</h3>
+    <div class="ml-2 text-xs text-gray-400 bg-gray-800/80 px-2 py-1 rounded-full"><%= @comments.count %></div>
+    <button id="closeComments" class="ml-auto text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-full">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="flex-1 overflow-y-auto p-4" id="commentsContainer">
+    <% if @comments.any? %>
+      <div class="space-y-5">
+        <% @comments.each do |comment| %>
+          <div class="flex items-start bg-gray-800/50 p-3 rounded-lg hover:bg-gray-800 transition-colors" id="comment-<%= comment.id %>">
+            <% if comment.user.avatar.attached? %>
+              <%= image_tag comment.user.avatar_url(size: 36), class: "w-9 h-9 rounded-full object-cover mr-3 border border-gray-700" %>
+            <% else %>
+              <div class="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center mr-3 border border-gray-700">
+                <span class="text-white font-semibold"><%= comment.user.username[0].upcase %></span>
+              </div>
+            <% end %>
+            <div class="flex-1">
+              <div class="flex items-baseline">
+                <span class="font-semibold text-white text-sm"><%= comment.user.username %></span>
+                <span class="ml-2 text-gray-400 text-xs"><%= time_ago_in_words(comment.created_at) %> ago</span>
+              </div>
+              <p class="text-gray-200 text-sm mt-1"><%= comment.body %></p>
+              
+              <div class="flex items-center mt-2 text-xs text-gray-500">
+                <button class="hover:text-gray-300 comment-like-btn">
+                  <i class="far fa-heart mr-1"></i> <span>0</span>
+                </button>
+                <span class="mx-2">•</span>
+                <button class="hover:text-gray-300 reply-btn" data-comment-id="<%= comment.id %>">
+                  <i class="far fa-comment mr-1"></i> Reply
+                </button>
+              </div>
+              
+              <!-- Reply Form (Initially Hidden) -->
+              <div class="mt-3 hidden reply-form" id="reply-form-<%= comment.id %>">
+                <form class="flex items-center">
+                  <input type="text" placeholder="Reply to <%= comment.user.username %>..." 
+                         class="flex-1 bg-gray-700 text-white text-xs rounded-full py-2 px-3 focus:outline-none focus:ring-1 focus:ring-teal-500">
+                  <button type="button" class="ml-2 text-teal-500 text-xs font-medium">Post</button>
+                </form>
+              </div>
+            </div>
+            
+            <!-- Comment Options -->
+            <div class="relative" x-data="{ open: false }">
+              <button @click="open = !open" class="text-gray-500 hover:text-gray-300 p-1">
+                <i class="fas fa-ellipsis-h"></i>
+              </button>
+              
+              <div x-show="open" @click.away="open = false" 
+                   class="absolute right-0 mt-1 w-36 bg-gray-800 rounded shadow-lg py-1 border border-gray-700 z-50"
+                   x-transition:enter="transition ease-out duration-100" 
+                   x-transition:enter-start="transform opacity-0 scale-95" 
+                   x-transition:enter-end="transform opacity-100 scale-100">
+                <button class="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
+                  <i class="far fa-flag mr-2"></i> Report
+                </button>
+                <% if user_signed_in? && (current_user == comment.user || current_user == @reel.user) %>
+                  <%= button_to reel_comment_path(@reel, comment), method: :delete, class: "block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300" do %>
+                    <i class="far fa-trash-alt mr-2"></i> Delete
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <!-- "Load More" Button -->
+      <% if @comments.count > 10 %>
+        <div class="text-center mt-4">
+          <button id="loadMoreComments" class="text-teal-400 hover:text-teal-300 text-sm bg-gray-800/70 px-4 py-2 rounded-full hover:bg-gray-800 transition-all">
+            Load more comments
+          </button>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="text-center py-12 px-4">
+        <div class="bg-gray-800/50 p-8 rounded-xl">
+          <i class="fas fa-comments text-5xl text-gray-600 mb-4"></i>
+          <p class="text-white text-lg font-medium">No comments yet</p>
+          <p class="text-gray-400 mt-2">Be the first to share your thoughts on this reel</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  
+  <% if user_signed_in? %>
+    <div class="p-4 border-t border-gray-800 bg-gray-900/80 backdrop-blur-md">
+      <%= form_with model: [@reel, @comment], class: "flex items-center", id: "commentForm" do |f| %>
+        <div class="relative flex-1">
+          <%= f.text_field :body, placeholder: "Add a comment...", class: "w-full bg-gray-800 border border-gray-700 rounded-full py-3 px-4 pr-12 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500" %>
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-3 text-gray-400">
+            <button type="button" class="hover:text-teal-400 emoji-picker-btn">
+              <i class="far fa-smile"></i>
+            </button>
+          </div>
+        </div>
+        <%= f.submit "Post", class: "ml-2 bg-teal-500 hover:bg-teal-600 text-white px-5 py-3 rounded-full font-medium transition-colors" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Next/Previous Reel Navigation -->
+<% if @next_reel || @previous_reel %>
+  <div class="fixed z-10 top-1/2 transform -translate-y-1/2 w-full justify-between hidden md:flex">
+    <% if @previous_reel %>
+      <%= link_to reel_path(@previous_reel), class: "ml-6 bg-black/30 backdrop-blur-sm p-3 rounded-full border border-white/10 text-white hover:bg-black/50 transition-all hover:scale-110" do %>
+        <i class="fas fa-chevron-left"></i>
+      <% end %>
+    <% end %>
+    
+    <% if @next_reel %>
+      <%= link_to reel_path(@next_reel), data: { turbo: "false" }, class: "mr-6 bg-black/30 backdrop-blur-sm p-3 rounded-full border border-white/10 text-white hover:bg-black/50 transition-all hover:scale-110" do %>
+        <i class="fas fa-chevron-right"></i>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<!-- Toast Notification -->
+<div id="toast-notification" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-3 rounded-lg shadow-lg z-50 opacity-0 transition-opacity duration-300 flex items-center pointer-events-none">
+  <span id="toast-message">Link copied to clipboard!</span>
+</div>
+
+<!-- Double-tap heart animation container -->
+<div id="heart-animation-container" class="fixed inset-0 pointer-events-none z-40"></div>
+
+<!-- Script for handling interactions -->
+<script>
+  // Main initialization function
+  function initializeReelVideo() {
+    const video = document.getElementById('reelVideo');
+    const placeholder = document.getElementById('video-placeholder');
+    const customControls = document.getElementById('customControls');
+    
+    if (!video) return;
+    
+    console.log("Initializing reel video...");
+    
+    // Reset video state
+    video.pause();
+    video.currentTime = 0;
+    
+    // Force reload by updating source with cache buster
+    const sources = video.querySelectorAll('source');
+    sources.forEach(source => {
+      const originalSrc = source.getAttribute('src');
+      const cacheBuster = `cb=${Date.now()}`;
+      const newSrc = originalSrc.includes('?') ? 
+        `${originalSrc.split('?')[0]}?${cacheBuster}` : 
+        `${originalSrc}?${cacheBuster}`;
+        
+      source.setAttribute('src', newSrc);
+    });
+    
+    // Explicitly load the video
+    video.load();
+    
+    // Handle loading states
+    video.addEventListener('loadeddata', handleVideoLoaded);
+    video.addEventListener('loadedmetadata', handleVideoMetadataLoaded);
+    video.addEventListener('canplay', handleVideoCanPlay);
+    video.addEventListener('error', handleVideoError);
+    
+    // Set up a fallback in case events don't fire
+    const loadTimeout = setTimeout(() => {
+      if (video.classList.contains('opacity-0')) {
+        console.log("Fallback: Video load timeout reached");
+        showVideo();
+      }
+    }, 3000);
+    
+    function handleVideoLoaded() {
+      console.log("Video loaded");
+      clearTimeout(loadTimeout);
+      showVideo();
+      attemptAutoplay();
+    }
+    
+    function handleVideoMetadataLoaded() {
+      console.log("Video metadata loaded");
+    }
+    
+    function handleVideoCanPlay() {
+      console.log("Video can play");
+      if (video.classList.contains('opacity-0')) {
+        showVideo();
+      }
+    }
+    
+    function handleVideoError(e) {
+      console.error("Video error:", e);
+      // Still show the video element even if there's an error
+      showVideo();
+    }
+    
+    function showVideo() {
+      video.classList.remove('opacity-0');
+      if (placeholder) {
+        placeholder.classList.add('opacity-0');
+        setTimeout(() => {
+          if (placeholder) placeholder.style.display = 'none';
+        }, 500);
+      }
+    }
+    
+    function attemptAutoplay() {
+      try {
+        const playPromise = video.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            // Auto-play succeeded
+            console.log("Auto-play succeeded");
+            const playBtn = document.querySelector('#playPauseBtn i');
+            if (playBtn) {
+              playBtn.classList.remove('fa-play');
+              playBtn.classList.add('fa-pause');
+            }
+            if (customControls) {
+              customControls.classList.remove('opacity-100');
+            }
+          }).catch(err => {
+            // Auto-play was prevented (common on mobile)
+            console.log("Auto-play prevented:", err);
+            if (customControls) {
+              customControls.classList.add('opacity-100');
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Auto-play error:", err);
+      }
+    }
+  }
+
+  // Run initialization at different points to ensure video loads
+
+  // On initial page load
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOMContentLoaded - initializing video");
+    setTimeout(initializeReelVideo, 100); // Small delay to ensure DOM is fully accessible
+  });
+
+  // On Turbolinks/Hotwire navigation
+  if (typeof Turbolinks !== 'undefined') {
+    document.addEventListener('turbolinks:load', function() {
+      console.log("Turbolinks load - initializing video");
+      setTimeout(initializeReelVideo, 100);
+    });
+  }
+
+  // For back/forward navigation from browser cache
+  window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+      console.log("Page show (from cache) - initializing video");
+      setTimeout(initializeReelVideo, 100);
+    }
+  });
+
+  // Mobile browsers may need user interaction
+  document.addEventListener('touchstart', function() {
+    const video = document.getElementById('reelVideo');
+    if (video && video.paused && video.readyState < 4) {
+      console.log("Touch interaction - preparing video");
+      video.load();
+    }
+  }, {once: true});
+
+  // As a last resort, try periodically
+  let checkAttempts = 0;
+  const checkInterval = setInterval(function() {
+    const video = document.getElementById('reelVideo');
+    if (video && video.classList.contains('opacity-0')) {
+      console.log(`Periodic check ${checkAttempts + 1} - initializing video`);
+      initializeReelVideo();
+    }
+    checkAttempts++;
+    if (checkAttempts >= 3) clearInterval(checkInterval);
+  }, 2000);
+</script>
+
+<style>
+  /* Custom animations */
+  .animate-spin-slow {
+    animation: spin 4s linear infinite;
+  }
+  
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s infinite;
+  }
+  
+  .animate-marquee {
+    animation: marquee 10s linear infinite;
+  }
+  
+  .animate-ping-once {
+    animation: ping-once 1s cubic-bezier(0, 0, 0.2, 1);
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes pulse-subtle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+  
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+  
+  @keyframes ping-once {
+    0% { transform: scale(0.5); opacity: 1; }
+    75%, 100% { transform: scale(1.5); opacity: 0; }
+  }
+  
+  /* Custom scrollbar */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 5px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.5);
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(45, 212, 191, 0.5);
+    border-radius: 20px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(45, 212, 191, 0.8);
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .right-sidebar { 
+      bottom: 16px;
+      right: 8px;
+    }
+  }
+</style>
+
+<!-- AlpineJS for dropdowns -->
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>

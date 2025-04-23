@@ -1,0 +1,32 @@
+<div class="max-w-6xl mx-auto py-8 px-4">
+  <h1 class="text-2xl md:text-3xl font-bold text-white mb-6">
+    <span class="text-teal-400">#<%= @tag %></span>
+  </h1>
+  
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+    <% @records.each do |record| %>
+      <% if record.is_a?(Post) %>
+        <%= link_to post_path(record), class: "block aspect-square bg-gray-800 rounded-lg overflow-hidden shadow-md" do %>
+          <% if record.image.attached? %>
+            <%= image_tag record.image, class: "w-full h-full object-cover" %>
+          <% end %>
+        <% end %>
+      <% elsif record.is_a?(Reel) %>
+        <%= link_to reel_path(record), class: "block aspect-square bg-gray-800 rounded-lg overflow-hidden shadow-md relative" do %>
+          <% if record.video.attached? && record.video.preview.present? %>
+            <%= image_tag record.video.preview(resize_to_limit: [300, 300]).processed.url, class: "w-full h-full object-cover" %>
+          <% end %>
+          <div class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full">
+            <i class="fas fa-play text-xs"></i>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+  
+  <% if @records.empty? %>
+    <div class="text-center py-12">
+      <p class="text-gray-400">No posts or reels with this hashtag yet.</p>
+    </div>
+  <% end %>
+</div>

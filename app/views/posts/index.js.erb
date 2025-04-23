@@ -1,0 +1,12 @@
+// Append new posts to the existing grid
+document.querySelector('.columns-1').insertAdjacentHTML('beforeend', '<%= j render partial: "posts/post_card", collection: @posts, as: :post %>');
+
+// Update the pagination link
+<% if @posts.next_page %>
+  document.querySelector('.pagination').outerHTML = '<%= j link_to_next_page @posts, "Load More", class: "pagination bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center", remote: true %>';
+<% else %>
+  document.querySelector('.pagination').outerHTML = '<p class="text-gray-500 text-center">You\'ve reached the end!</p>';
+<% end %>
+
+// Reinitialize any JavaScript for the new posts (for example, if you have any click handlers)
+// You might need to add code here for any interactive elements in your posts
