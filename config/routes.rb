@@ -65,8 +65,8 @@ Rails.application.routes.draw do
     member do
       post 'like', to: 'likes#create'
       delete 'like', to: 'likes#destroy'
-      post 'save', to: 'saves#create'
-      delete 'save', to: 'saves#destroy'
+      post 'save', to: 'saves#create_reel_save'
+      delete 'save', to: 'saves#destroy_reel_save'
     end
     resources :comments, only: [:create, :destroy]
     collection do

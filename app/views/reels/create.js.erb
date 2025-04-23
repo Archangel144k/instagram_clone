@@ -1,0 +1,32 @@
+// Update the like button dynamically
+const likeButton = document.querySelector('#likeButton');
+if (likeButton) {
+  const heartIcon = likeButton.querySelector('.fas.fa-heart');
+  const likeCount = likeButton.querySelector('span');
+
+  if (!heartIcon) {
+    const heartDiv = document.createElement('div');
+    heartDiv.className = "bg-black/50 text-red-500 p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:scale-110 transition-all";
+    heartDiv.innerHTML = '<i class="fas fa-heart text-xl"></i>';
+    likeButton.appendChild(heartDiv);
+  }
+
+  if (likeCount) {
+    likeCount.textContent = '<%= @reel.likes.count %>';
+  } else {
+    const countSpan = document.createElement('span');
+    countSpan.className = "text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm";
+    countSpan.textContent = '<%= @reel.likes.count %>';
+    likeButton.appendChild(countSpan);
+  }
+}
+
+// Update the save button dynamically
+document.querySelector('#saveButton').innerHTML = `
+  <%= button_to save_reel_path(@reel), method: :delete, remote: true, class: "save-button" do %>
+    <div class="bg-black/50 text-teal-400 p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:scale-110 transition-all">
+      <i class="fas fa-bookmark text-xl"></i>
+    </div>
+    <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Saved</span>
+  <% end %>
+`;

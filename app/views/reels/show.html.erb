@@ -93,24 +93,23 @@
 <!-- Right Sidebar for Actions -->
 <div class="absolute right-4 md:right-8 bottom-32 flex flex-col space-y-6 items-center z-10">
   <!-- Like Button with Improved Animation -->
-  <% if user_signed_in? && current_user.likes?(@reel) %>
-    <%= button_to like_reel_path(@reel), method: :delete, class: "flex flex-col items-center group relative", id: "likeButton" do %>
-      <div class="bg-black/50 text-red-500 p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:scale-110 transition-all relative">
-        <i class="fas fa-heart text-xl"></i>
-        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 animate-ping-once hidden" id="heartPing">
-          <i class="fas fa-heart text-[8px] text-white"></i>
-        </span>
-      </div>
-      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm"><%= @reel.likes.count %></span>
+  <div id="likeButton">
+    <% if user_signed_in? && current_user.likes?(@reel) %>
+      <%= button_to like_reel_path(@reel), method: :delete, remote: true, class: "like-button" do %>
+        <div class="bg-black/50 text-red-500 p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:scale-110 transition-all">
+          <i class="fas fa-heart text-xl"></i>
+        </div>
+        <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm"><%= @reel.likes.count %></span>
+      <% end %>
+    <% else %>
+      <%= button_to like_reel_path(@reel), method: :post, remote: true, class: "like-button" do %>
+        <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-red-500 group-hover:scale-110 transition-all">
+          <i class="far fa-heart text-xl"></i>
+        </div>
+        <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm"><%= @reel.likes.count %></span>
+      <% end %>
     <% end %>
-  <% else %>
-    <%= button_to like_reel_path(@reel), method: :post, class: "flex flex-col items-center group relative", id: "likeButton" do %>
-      <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-red-500 group-hover:scale-110 transition-all relative">
-        <i class="fas fa-heart text-xl"></i>
-      </div>
-      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm"><%= @reel.likes.count %></span>
-    <% end %>
-  <% end %>
+  </div>
   
   <!-- Comment Button with Notification Dot -->
   <button class="flex flex-col items-center group" id="commentToggle">
@@ -124,21 +123,23 @@
   </button>
   
   <!-- Save Button -->
-  <% if user_signed_in? && current_user.saved?(@reel) %>
-    <%= button_to save_reel_path(@reel), method: :delete, class: "flex flex-col items-center group" do %>
-      <div class="bg-black/50 text-teal-400 p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:scale-110 transition-all">
-        <i class="fas fa-bookmark text-xl"></i>
-      </div>
-      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Saved</span>
+  <div id="saveButton">
+    <% if user_signed_in? && current_user.saved?(@reel) %>
+      <%= button_to save_reel_path(@reel), method: :delete, remote: true, class: "save-button" do %>
+        <div class="bg-black/50 text-teal-400 p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:scale-110 transition-all">
+          <i class="fas fa-bookmark text-xl"></i>
+        </div>
+        <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Saved</span>
+      <% end %>
+    <% else %>
+      <%= button_to save_reel_path(@reel), method: :post, remote: true, class: "save-button" do %>
+        <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-teal-400 group-hover:scale-110 transition-all">
+          <i class="far fa-bookmark text-xl"></i>
+        </div>
+        <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Save</span>
+      <% end %>
     <% end %>
-  <% else %>
-    <%= button_to save_reel_path(@reel), method: :post, class: "flex flex-col items-center group" do %>
-      <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-teal-400 group-hover:scale-110 transition-all">
-        <i class="far fa-bookmark text-xl"></i>
-      </div>
-      <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Save</span>
-    <% end %>
-  <% end %>
+  </div>
   
   <!-- Share Button with Extended Options -->
   <div class="relative" x-data="{ showShareOptions: false }">

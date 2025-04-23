@@ -1,0 +1,19 @@
+// Update the like button dynamically
+document.querySelector('#likeButton').innerHTML = `
+  <%= button_to like_reel_path(@reel), method: :post, remote: true, class: "like-button" do %>
+    <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-red-500 group-hover:scale-110 transition-all">
+      <i class="far fa-heart text-xl"></i>
+    </div>
+    <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm"><%= @reel.likes.count %></span>
+  <% end %>
+`;
+
+// Update the save button dynamically
+document.querySelector('#saveButton').innerHTML = `
+  <%= button_to save_reel_path(@reel), method: :post, remote: true, class: "save-button" do %>
+    <div class="bg-black/50 text-white p-4 rounded-full backdrop-blur-md border border-white/10 group-hover:text-teal-400 group-hover:scale-110 transition-all">
+      <i class="far fa-bookmark text-xl"></i>
+    </div>
+    <span class="text-white text-xs font-medium mt-2 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">Save</span>
+  <% end %>
+`;
