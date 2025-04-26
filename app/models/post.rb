@@ -11,10 +11,6 @@ class Post < ApplicationRecord
   has_many :likes, as: :likeable, dependent: :destroy
   has_many :saves, as: :saveable, dependent: :destroy
 
-  # For saved posts functionality
-  has_many :post_saves, class_name: "PostSave", dependent: :destroy
-  has_many :saved_by_users, through: :post_saves, source: :user
-
   # Validations
   validates :image, presence: true
   validates :caption, length: { maximum: 2200 }
@@ -28,6 +24,19 @@ class Post < ApplicationRecord
   end
 
   def saved_by?(user)
-    saved_by_users.include?(user)
+    saves.exists?(user_id: user.id)
+  end
+
+  # Image variants for optimization
+  def image_variant(size = :medium)
+    return unless image.attached?
+    case size
+    when :thumb
+      image.variant(resize_to_fill: [80, 80]).processed
+    when :medium
+      image.variant(resize_to_limit: [400, 400]).processed
+    else
+      image
+    end
   end
 end

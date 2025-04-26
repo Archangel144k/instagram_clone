@@ -1,21 +1,178 @@
 <!-- filepath: app/views/stories/index.html.erb -->
-<div class="stories-container flex space-x-4 overflow-x-auto p-4 bg-gray-900">
-  <% @stories.each do |story| %>
-    <div class="story-item group relative">
-      <%= link_to story_path(story), class: "block w-20 h-20 rounded-full overflow-hidden border-2 border-teal-500 group-hover:border-teal-300 transition-all duration-300" do %>
-        <% if story.media.content_type.start_with?("image") %>
-          <%= image_tag story.media, class: "w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" %>
-        <% elsif story.media.content_type.start_with?("video") %>
-          <video class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" autoplay muted loop>
-            <source src="<%= url_for(story.media) %>" type="<%= story.media.content_type %>">
-          </video>
+<!-- Stories Feed with Improved Visual Design -->
+<% if @stories.blank? && current_user.following.none? { |user| user.stories.active.exists? } %>
+  <div class="fixed inset-0 bg-gray-900 flex items-center justify-center">
+    <div class="max-w-md w-full p-8 text-center">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-800 flex items-center justify-center">
+        <i class="fas fa-book text-gray-600 text-3xl"></i>
+      </div>
+      
+      <h2 class="text-xl font-bold text-white mb-4">No stories yet</h2>
+      <p class="text-gray-400 mb-8">Follow more people to see their stories here, or create your own!</p>
+      
+      <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <%= link_to new_story_path, class: "bg-gradient-to-r from-teal-500 to-blue-500 text-white py-3 px-6 rounded-lg font-medium" do %>
+          <i class="fas fa-plus mr-2"></i> Create your story
         <% end %>
-      <% end %>
-
-      <!-- User Info Overlay -->
-      <div class="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs text-center py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <%= story.user.username %>
+        
+        <%= link_to root_path, class: "bg-gray-800 text-white py-3 px-6 rounded-lg font-medium" do %>
+          <i class="fas fa-home mr-2"></i> Back to feed
+        <% end %>
       </div>
     </div>
-  <% end %>
+  </div>
+  <% return %>
+<% end %>
+
+<%# --- Stories Feed --- %>
+<div class="stories-container relative">
+  <div class="flex space-x-5 overflow-x-auto p-5 scrollbar-hide">
+    <% @stories.each_with_index do |story, idx| %>
+      <div class="cursor-pointer group" data-story-index="<%= idx %>">
+        <% if story.media.attached? %>
+          <% if story.media.content_type.start_with?("image") %>
+            <%= image_tag url_for(story.media), class: "rounded-lg shadow w-32 h-32 object-cover group-hover:ring-4 group-hover:ring-teal-400 transition" %>
+          <% elsif story.media.content_type.start_with?("video") %>
+            <video class="rounded-lg shadow w-32 h-32 object-cover group-hover:ring-4 group-hover:ring-teal-400 transition" muted>
+              <source src="<%= url_for(story.media) %>" type="<%= story.media.content_type %>">
+            </video>
+          <% end %>
+        <% end %>
+        <p class="text-xs text-teal-400 font-medium mt-2 text-center"><%= story.user.username %></p>
+      </div>
+    <% end %>
+  </div>
 </div>
+<p class="text-xs text-gray-400 mt-2 text-center">Stories count: <%= @stories.count %></p>
+
+<%# --- Book Flip Viewer --- %>
+<div class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 hidden" id="story-viewer" tabindex="-1">
+  <div class="relative w-full max-w-lg h-[70vh] flex items-center justify-center">
+    <div id="flipbook" class="relative w-full h-full perspective">
+      <% @stories.each_with_index do |story, idx| %>
+        <div class="flip-page absolute inset-0 transition-transform duration-700 ease-in-out"
+             data-page="<%= idx %>"
+             style="z-index: <%= @stories.size - idx %>;">
+          <% if story.media.content_type.include?('image') %>
+            <%= image_tag url_for(story.media), class: "w-full h-full object-cover rounded-lg shadow-lg" %>
+          <% elsif story.media.content_type.include?('video') %>
+            <video class="w-full h-full object-cover rounded-lg shadow-lg" autoplay muted loop playsinline>
+              <source src="<%= url_for(story.media) %>" type="<%= story.media.content_type %>">
+            </video>
+          <% end %>
+          <div class="absolute bottom-4 left-4 text-white bg-black/60 px-3 py-1 rounded">
+            <%= story.user.username %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <!-- Controls -->
+    <div class="absolute bottom-6 left-0 right-0 flex justify-center space-x-6 z-20">
+      <button id="prev-btn" class="bg-black/50 text-white p-3 rounded-full border border-white/10 hover:bg-black/70 transition-all" aria-label="Previous story">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button id="next-btn" class="bg-black/50 text-white p-3 rounded-full border border-white/10 hover:bg-black/70 transition-all" aria-label="Next story">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <button id="close-btn" class="bg-red-600 text-white p-3 rounded-full border border-white/10 hover:bg-red-700 transition-all" aria-label="Close viewer">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .story-page { transition: transform 0.6s; }
+  .story-page:hover { transform: rotateY(-8deg) scale(1.01); }
+  #stories-book { max-width: 900px; margin: 0 auto; border-radius: 10px; }
+  #book { background: linear-gradient(to right, #222, #333, #222); border-radius: 10px; }
+  #stories-book::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+    background: rgba(255,255,255,0.08); z-index: 10;
+  }
+  @media (max-width: 900px) {
+    #stories-book { max-width: 100vw; }
+    #book { flex-direction: column; }
+  }
+  .perspective {
+    perspective: 1200px;
+  }
+  .flip-page {
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .flip-page.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: rotateY(0deg) scale(1.02);
+    z-index: 2;
+  }
+  .flip-page.left {
+    opacity: 0.5;
+    transform: rotateY(-60deg) scale(0.95);
+    z-index: 1;
+  }
+  .flip-page.right {
+    opacity: 0.5;
+    transform: rotateY(60deg) scale(0.95);
+    z-index: 1;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const viewer = document.getElementById('story-viewer');
+  const flipbook = document.getElementById('flipbook');
+  const pages = Array.from(flipbook.querySelectorAll('.flip-page'));
+  let current = 0;
+
+  function updatePages() {
+    pages.forEach((page, idx) => {
+      page.classList.remove('active', 'left', 'right');
+      if (idx === current) {
+        page.classList.add('active');
+      } else if (idx < current) {
+        page.classList.add('left');
+      } else {
+        page.classList.add('right');
+      }
+    });
+  }
+
+  // Show viewer and go to clicked story
+  document.querySelectorAll('.stories-container [data-story-index]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      viewer.classList.remove('hidden');
+      current = parseInt(el.dataset.storyIndex, 10);
+      updatePages();
+      viewer.focus();
+    });
+  });
+
+  document.getElementById('prev-btn').onclick = function() {
+    if (current > 0) {
+      current--;
+      updatePages();
+    }
+  };
+  document.getElementById('next-btn').onclick = function() {
+    if (current < pages.length - 1) {
+      current++;
+      updatePages();
+    }
+  };
+  document.getElementById('close-btn').onclick = function() {
+    viewer.classList.add('hidden');
+  };
+
+  viewer.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') document.getElementById('prev-btn').click();
+    if (e.key === 'ArrowRight') document.getElementById('next-btn').click();
+    if (e.key === 'Escape') document.getElementById('close-btn').click();
+  });
+});
+</script>

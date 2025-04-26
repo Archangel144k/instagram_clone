@@ -67,8 +67,8 @@ class PostsController < ApplicationController
     
     if @like.save
       respond_to do |format|
-        format.html { redirect_back(fallback_location: posts_url) }
-        format.turbo_stream
+        format.html { redirect_back fallback_location: posts_path }
+        format.js   # renders like.js.erb
       end
     else
       redirect_back fallback_location: posts_url, alert: 'Could not like this post.'
@@ -91,19 +91,35 @@ class PostsController < ApplicationController
 
   # POST /posts/1/save
   def save
-    current_user.saved_posts << @post unless current_user.saved_posts.include?(@post)
-    respond_to do |format|
-      format.html { redirect_back(fallback_location: posts_url) }
-      format.turbo_stream
+    @save = current_user.saves.build(saveable: @post, saveable_type: 'Post')
+    
+    if @save.save
+      respond_to do |format|
+        format.html { redirect_back(fallback_location: post_path(@post), notice: "Post saved") }
+        format.json { render json: { success: true } }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_back(fallback_location: post_path(@post), alert: "Could not save post") }
+        format.json { render json: { success: false, errors: @save.errors.full_messages } }
+      end
     end
   end
 
   # DELETE /posts/1/unsave
   def unsave
-    current_user.saved_posts.delete(@post)
-    respond_to do |format|
-      format.html { redirect_back(fallback_location: posts_url) }
-      format.turbo_stream
+    @save = current_user.saves.find_by(saveable_id: @post.id, saveable_type: 'Post')
+    
+    if @save&.destroy
+      respond_to do |format|
+        format.html { redirect_back(fallback_location: saved_posts_path, notice: "Post removed from saved items") }
+        format.json { render json: { success: true } }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_back(fallback_location: saved_posts_path, alert: "Could not remove post from saved items") }
+        format.json { render json: { success: false, error: "Could not remove post from saved items" } }
+      end
     end
   end
 
@@ -121,7 +137,7 @@ class PostsController < ApplicationController
 
   # GET /posts/saved
   def saved
-    @posts = current_user.saved_posts.includes(:user, image_attachment: :blob).page(params[:page]).per(12)
+    @saved_posts = current_user.saved_posts.includes(:image_attachment, :image_blob)
   end
 
   private
@@ -132,7 +148,7 @@ class PostsController < ApplicationController
 
     # Only allow a list of trusted parameters through
     def post_params
-      params.require(:post).permit(:caption, :image)
+      params.require(:post).permit(:title, :caption, :image, :location)
     end
 
     # Check if current user can edit/update/destroy post
@@ -154,6 +170,10 @@ class UsersController < ApplicationController
   def unfollow
     current_user.unfollow(@user)
     redirect_to @user, notice: "You have unfollowed #{@user.username}."
+  end
+
+  def saved?(post)
+    saved_posts.include?(post)
   end
 
   private

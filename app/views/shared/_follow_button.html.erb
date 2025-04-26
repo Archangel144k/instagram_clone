@@ -1,0 +1,13 @@
+<% if user_signed_in? && current_user != user %>
+  <% if current_user.following?(user) %>
+    <%= button_to unfollow_user_path(user), method: :delete, remote: true, form: { data: { turbo: false }, class: "follow-form" },
+        class: "unfollow-button text-gray-200 border border-gray-500 bg-gray-800 hover:bg-gray-700 px-4 py-1.5 rounded-full text-sm font-medium" do %>
+      <i class="fas fa-user-minus mr-1"></i> Following
+    <% end %>
+  <% else %>
+    <%= button_to follow_user_path(user), method: :post, remote: true, form: { data: { turbo: false }, class: "follow-form" },
+        class: "follow-button bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium" do %>
+      <i class="fas fa-user-plus mr-1"></i> Follow
+    <% end %>
+  <% end %>
+<% end %>

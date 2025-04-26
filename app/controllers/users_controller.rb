@@ -45,7 +45,7 @@ class UsersController < ApplicationController
     @user = User.friendly.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     flash[:alert] = "User not found"
-    redirect_to root_path
+    redirect_to root_path and return
   end
   
   def user_params
@@ -54,7 +54,7 @@ class UsersController < ApplicationController
   
   def authorize_user
     unless @user == current_user
-      redirect_to @user, alert: "You're not authorized to edit this profile."
+      redirect_to(root_path, alert: "You're not authorized to edit this profile.")
     end
   end
 end

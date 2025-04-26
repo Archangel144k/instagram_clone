@@ -1,0 +1,35 @@
+<div class="max-w-xl mx-auto mt-16 p-8 bg-gray-900 rounded-2xl shadow-2xl border border-gray-800">
+  <h1 class="text-3xl font-extrabold text-teal-400 mb-8 text-center flex items-center justify-center gap-2">
+    <i class="fas fa-plus-circle"></i>
+    Create New Story
+  </h1>
+  
+  <%= form_with model: @story, local: true, multipart: true, data: { turbo: false }, class: "space-y-8" do |f| %>
+    <% if @story.errors.any? %>
+      <div class="bg-red-900/60 p-4 rounded-lg mb-4">
+        <h2 class="text-red-200 font-semibold mb-2">There were problems with your submission:</h2>
+        <ul class="list-disc pl-5 text-red-200 text-sm">
+          <% @story.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= f.label :media, "Upload Media", class: "block text-sm font-medium text-gray-300 mb-2" %>
+      <%= f.file_field :media, accept: "image/*,video/*", class: "block w-full text-sm text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-700 bg-gray-800 rounded-lg cursor-pointer" %>
+      <p class="mt-1 text-xs text-gray-400">Supported: images & videos. Max size: 30MB.</p>
+    </div>
+
+    <div>
+      <%= f.label :caption, "Caption (optional)", class: "block text-sm font-medium text-gray-300 mb-2" %>
+      <%= f.text_area :caption, rows: 3, class: "w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-white focus:border-teal-500 focus:ring focus:ring-teal-500/20", placeholder: "Say something about your story..." %>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <%= f.submit "Share Story", class: "py-3 px-6 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-bold rounded-lg shadow transition-all duration-200" %>
+      <%= link_to "Cancel", stories_path, class: "text-gray-400 hover:text-teal-400 transition-colors" %>
+    </div>
+  <% end %>
+</div>

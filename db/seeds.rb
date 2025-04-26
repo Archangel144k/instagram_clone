@@ -100,7 +100,7 @@ end
 # Create Follows
 # ==============================
 
-def create_follows
+def create_follows(users)
   # Check if follows table exists
   if !ActiveRecord::Base.connection.table_exists?('follows')
     puts "⚠️ The follows table doesn't exist. Creating it now..."
@@ -119,14 +119,74 @@ def create_follows
     end
   end
 
-  # Then continue with your follow creation logic
-  puts "Creating follows..."
-  User.all.each do |user|
-    # Your existing code...
+  # Clear existing follows for clean seeding (optional)
+  if Follow.count > 0
+    puts "🧹 Clearing existing follows..."
+    Follow.delete_all
   end
+
+  puts "👥 Creating follows..."
+  
+  # Create a realistic social graph
+  # - Some users are very popular (followed by many)
+  # - Some users follow many others
+  # - Some have balanced follow/follower counts
+  
+  # Make island_explorer and sunset_chaser popular accounts
+  popular_users = users.select { |user| ['island_explorer', 'sunset_chaser'].include?(user.username) }
+  
+  # Create follow relationships
+  total_follows = 0
+  
+  users.each do |follower|
+    # Determine how many users this account will follow (2-5 for normal users)
+    max_to_follow = case follower.username
+                    when 'beach_lover', 'alice_codes'
+                      # These users follow more people
+                      rand(4..6)
+                    else
+                      rand(2..5)
+                    end
+    
+    # Select users to follow (excluding self)
+    potential_followed = users - [follower]
+    
+    # Popular users are more likely to be followed
+    potential_followed = (potential_followed + popular_users).uniq
+    
+    # Select random subset to follow
+    to_follow = potential_followed.sample(max_to_follow)
+    
+    to_follow.each do |followed|
+      next if follower == followed # Extra check to never follow self
+      next if Follow.exists?(follower_id: follower.id, followed_id: followed.id)
+      
+      follow = Follow.new(follower_id: follower.id, followed_id: followed.id)
+      
+      if follow.save
+        total_follows += 1
+        puts "👤 #{follower.username} is now following #{followed.username}"
+      else
+        puts "❌ Failed to create follow: #{follow.errors.full_messages.join(', ')}"
+      end
+    end
+  end
+  
+  # Create specific follows for testing
+  if users.length >= 2
+    test_follower = users.first
+    test_followed = users.second
+    
+    unless Follow.exists?(follower_id: test_follower.id, followed_id: test_followed.id)
+      Follow.create(follower_id: test_follower.id, followed_id: test_followed.id)
+      puts "🔍 Created test follow: #{test_follower.username} → #{test_followed.username}"
+    end
+  end
+  
+  puts "✅ Created #{total_follows} follows"
 end
 
-create_follows
+create_follows(created_users)
 
 # ==============================
 # Create Posts with Real Images
@@ -313,6 +373,114 @@ if defined?(Reel)
   puts "⚠️ Skipping Reel creation - please add videos manually or update seed file with video URLs"
 end
 
+# ==============================
+# Create Stories
+# ==============================
+
+story_image_urls = [
+  'https://images.unsplash.com/photo-1566761011389-b226bd9122dc?q=80&w=1200', # Beach view
+  'https://images.unsplash.com/photo-1540202404-d0c7fe46a087?q=80&w=1200',    # Sunset
+  'https://images.unsplash.com/photo-1583509160110-b8ddb984eba9?q=80&w=1200', # Palm trees
+  'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?q=80&w=1200',    # Beach drinks
+  'https://images.unsplash.com/photo-1626446614196-a1ca3a2975f5?q=80&w=1200', # Swimming pigs
+  'https://images.unsplash.com/photo-1518756740824-59cc0e2b1de7?q=80&w=1200', # Boat on water
+  'https://images.unsplash.com/photo-1600210491369-e753d80a41f3?q=80&w=1200', # Bahamas aerial view
+  'https://images.unsplash.com/photo-1567519136491-e52abba28c88?q=80&w=1200'  # Resort view
+]
+
+# Only use videos with appropriate licenses (Creative Commons or public domain)
+story_video_urls = [
+  'https://assets.mixkit.co/videos/preview/mixkit-waves-in-the-water-1164-large.mp4',
+  'https://assets.mixkit.co/videos/preview/mixkit-young-woman-taking-a-picture-of-the-sunset-5028-large.mp4',
+  'https://assets.mixkit.co/videos/preview/mixkit-aerial-of-a-paradisiacal-beach-4112-large.mp4',
+  'https://assets.mixkit.co/videos/preview/mixkit-dog-jumps-into-a-pool-1958-large.mp4'
+]
+
+story_captions = [
+  "Just another day in paradise 🏝️",
+  "Sunset chasing 🌅",
+  "Ocean therapy 🌊",
+  "Beach vibes only ✨",
+  "Island hopping today! 🚤",
+  "Soaking up the sun ☀️",
+  "This view though... 😍",
+  "Morning swim 🏊‍♀️",
+  "Found a hidden gem today",
+  "No filter needed here",
+  "Making memories 💭",
+  "Can't get enough of this place 💙"
+]
+
+def create_stories(users, image_urls, video_urls, captions)
+  # Check if Story model exists
+  return unless defined?(Story)
+  
+  puts "📱 Creating stories..."
+  
+  users.each do |user|
+    # Create 1-3 stories per user with varying expiration times
+    rand(1..3).times do
+      # Decide between image or video (70% chance of image)
+      is_image = rand < 0.7
+      media_url = is_image ? image_urls.sample : video_urls.sample
+      caption = captions.sample
+      
+      # Set expiration - some active, some expired
+      expires_at = [24.hours.from_now, 12.hours.from_now, 2.hours.ago, 1.day.ago].sample
+      
+      story = user.stories.new(
+        caption: caption,
+        expires_at: expires_at
+      )
+      
+      begin
+        file = URI.open(media_url)
+        content_type = is_image ? 'image/jpeg' : 'video/mp4'
+        story.media.attach(
+          io: file,
+          filename: "story_#{SecureRandom.hex(5)}.#{is_image ? 'jpg' : 'mp4'}",
+          content_type: content_type
+        )
+        
+        if story.save
+          status = expires_at > Time.current ? "🟢 Active" : "🔴 Expired"
+          puts "#{status} story created for #{user.username}: #{caption[0..20]}... (#{is_image ? 'Image' : 'Video'})"
+          
+          # Create some views for each story
+          create_story_views(story, users - [user])
+        else
+          puts "❌ Failed to create story: #{story.errors.full_messages.join(', ')}"
+        end
+      rescue => e
+        puts "❌ Failed to attach media for story: #{e.message}"
+      end
+    end
+  end
+end
+
+def create_story_views(story, users)
+  return unless defined?(StoryView)
+  
+  # Random viewers (30-70% of users)
+  num_viewers = (users.length * (0.3 + rand * 0.4)).to_i
+  viewers = users.sample(num_viewers)
+  
+  viewers.each do |viewer|
+    view = StoryView.new(user: viewer, story: story)
+    if view.save
+      # Don't output this to avoid cluttering the console
+    else
+      puts "⚠️ Failed to create story view: #{view.errors.full_messages.join(', ')}"
+    end
+  end
+  
+  if viewers.any?
+    puts "  👁️ Viewed by #{viewers.count} users"
+  end
+end
+
+create_stories(created_users, story_image_urls, story_video_urls, story_captions)
+
 puts "✅ Seeding complete! Created:"
 puts "• #{User.count} users"
 puts "• #{Post.count} posts"
@@ -321,3 +489,5 @@ puts "• #{Like.count} likes"
 puts "• #{Follow.count} follows"
 puts "• #{defined?(Save) ? Save.count : 0} saved posts"
 puts "• #{defined?(Reel) ? Reel.count : 0} reels"
+puts "• #{defined?(Story) ? Story.count : 0} stories"
+puts "• #{defined?(StoryView) ? StoryView.count : 0} story views"

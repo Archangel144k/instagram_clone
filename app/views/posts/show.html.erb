@@ -1,117 +1,333 @@
-<div class="max-w-4xl mx-auto py-8 px-4 sm:py-12">
-  <% if @user %>
-    <!-- User Info -->
-    <div class="flex items-center space-x-6 mb-6">
-      <%= image_tag @user.avatar_url(size: 100), class: "h-24 w-24 rounded-full object-cover border-4 border-gray-700" %>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-100"><%= @user.username %></h1>
-        <p class="text-gray-400"><%= @user.bio %></p>
-        <% if @user.website.present? %>
-          <a href="<%= @user.website %>" target="_blank" class="text-teal-400 hover:text-teal-300">
-            <%= @user.website %>
-          </a>
-        <% end %>
-      </div>
-    </div>
-  <% else %>
-    <p class="text-gray-400">User information is not available for this post.</p>
-  <% end %>
+<%# Real-time comments: post ID for Action Cable %>
+<% content_for :head do %>
+  <meta name="post-id" content="<%= @post.id %>">
+<% end %>
 
-  <!-- Post Content Section -->
+<div class="max-w-5xl mx-auto py-8 px-4 sm:py-12">
+  <!-- Enhanced Post Card -->
   <% if @post %>
-    <div class="bg-gray-900 rounded-xl shadow-xl overflow-hidden mb-8 border border-gray-800">
-      <div class="flex flex-col md:flex-row">
-        <!-- Post Image - Left Side -->
-        <div class="md:w-2/3 bg-gray-800 flex items-center justify-center relative">
+    <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-gray-700/50">
+      <div class="flex flex-col lg:flex-row">
+        <!-- Left: Post Media (Image/Carousel) -->
+        <div class="lg:w-3/5 relative bg-black flex items-center justify-center">
           <% if @post.image.attached? %>
-            <%= image_tag @post.image, class: "w-full h-auto max-h-[calc(100vh-200px)] object-contain" %>
+            <!-- Double-tap area for liking -->
+            <div class="double-tap-area relative w-full flex items-center justify-center" 
+                 data-post-id="<%= @post.id %>"
+                 data-liked="<%= user_signed_in? && current_user.likes?(@post) %>">
+              
+              <!-- Double-tap heart animation -->
+              <div class="double-tap-effect absolute">
+                <i class="fas fa-heart"></i>
+              </div>
+              
+              <% if @post.image_variant(:medium).present? %>
+                <%= image_tag @post.image_variant(:medium), class: "w-full h-auto max-h-[80vh] object-contain" %>
+              <% end %>
+            </div>
           <% else %>
-            <div class="p-12 text-center text-gray-500">
-              <i class="fas fa-image text-5xl mb-4 opacity-50"></i>
+            <div class="p-12 text-center text-gray-500 w-full h-[50vh] flex flex-col items-center justify-center">
+              <i class="fas fa-image text-6xl mb-6 opacity-50"></i>
               <p>No image attached</p>
             </div>
           <% end %>
+          
+          <!-- Image navigation controls (if needed for future carousel) -->
+          <% if false # placeholder for future multi-image support %>
+            <button class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 h-10 w-10 rounded-full flex items-center justify-center backdrop-blur-sm text-white">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 h-10 w-10 rounded-full flex items-center justify-center backdrop-blur-sm text-white">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          <% end %>
         </div>
-
-        <!-- Post Details - Right Side -->
-        <div class="md:w-1/3 p-6 flex flex-col">
-          <!-- Post Author -->
-          <% if @post.user %>
-            <div class="flex items-center mb-4 pb-3 border-b border-gray-800">
+        
+        <!-- Right: Post Info -->
+        <div class="lg:w-2/5 flex flex-col bg-gray-900 border-l border-gray-700/30">
+          <!-- Header: Author Info -->
+          <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
               <%= link_to user_path(@post.user), class: "flex items-center group" do %>
-                <div class="relative">
-                  <%= image_tag @post.user.avatar_url(size: 40), class: "h-10 w-10 rounded-full object-cover border-2 border-gray-700 group-hover:border-teal-500 transition-colors" %>
-                </div>
+                <%= image_tag @post.user.avatar_variant(:thumb), class: "h-10 w-10 rounded-full object-cover border-2 border-gray-700/60 group-hover:border-teal-500 transition-all" %>
                 <div class="ml-3">
                   <h3 class="font-semibold text-gray-100 group-hover:text-teal-400 transition-colors"><%= @post.user.username %></h3>
                 </div>
               <% end %>
             </div>
-          <% end %>
-
-          <!-- Post Title and Caption -->
-          <div class="flex-grow">
-            <% if @post.title.present? %>
-              <h1 class="text-xl font-bold bg-gradient-to-r from-teal-400 to-blue-400 bg-clip-text text-transparent mb-2"><%= @post.title %></h1>
-            <% end %>
-            <p class="text-gray-300 mb-4 leading-relaxed"><%= @post.caption %></p>
-            <div class="text-gray-400 text-sm mb-6 flex items-center">
-              <i class="far fa-clock mr-2 opacity-70"></i>
-              <span><%= time_ago_in_words(@post.created_at) %> ago</span>
-            </div>
-          </div>
-
-          <!-- Actions: Like, Comment, Save -->
-          <div class="flex items-center space-x-6 border-t border-gray-800 pt-4">
-            <!-- Like Button -->
-            <div class="flex items-center space-x-2">
-              <% if user_signed_in? %>
-                <% if current_user.likes?(@post) %>
-                  <%= button_to like_post_path(@post), method: :delete, remote: true, class: "text-red-500 hover:scale-110 transition-transform" do %>
-                    <i class="fas fa-heart text-xl"></i>
-                  <% end %>
-                <% else %>
-                  <%= button_to like_post_path(@post), method: :post, remote: true, class: "like-button text-gray-400 hover:text-red-500 hover:scale-110 transition-transform" do %>
-                    <i class="far fa-heart text-xl"></i>
-                  <% end %>
+            
+            <!-- Follow button -->
+            <% if user_signed_in? && current_user != @post.user %>
+              <% if current_user.following?(@post.user) %>
+                <%= button_to unfollow_user_path(@post.user), method: :delete, remote: true, form: { data: { turbo: false }, class: "follow-form" },
+                    class: "unfollow-button text-gray-200 border border-gray-500 bg-gray-800 hover:bg-gray-700 px-4 py-1.5 rounded-full text-sm font-medium" do %>
+                  <i class="fas fa-user-check mr-1"></i> Following
                 <% end %>
               <% else %>
-                <i class="far fa-heart text-gray-500 text-xl"></i>
+                <%= button_to follow_user_path(@post.user), method: :post, remote: true, form: { data: { turbo: false }, class: "follow-form" },
+                    class: "follow-button bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium" do %>
+                  <i class="fas fa-user-plus mr-1"></i> Follow
+                <% end %>
               <% end %>
-              <span class="text-sm text-gray-400"><%= @post.likes.count %> <%= 'like'.pluralize(@post.likes.count) %></span>
-            </div>
+            <% end %>
+          </div>
 
-            <!-- Save Button -->
-            <div class="flex items-center space-x-2 ml-auto">
-              <% if user_signed_in? %>
-                <% if current_user.saved?(@post) %>
-                  <%= button_to save_post_path(@post), method: :delete, remote: true, class: "text-teal-500 hover:scale-110 transition-transform" do %>
-                    <i class="fas fa-bookmark text-xl"></i>
+          <!-- Scrolling Content Area -->
+          <div class="flex-1 overflow-y-auto custom-scrollbar" style="max-height: 60vh;">
+            <!-- Caption -->
+            <div class="p-4 border-b border-gray-800/50">
+              <% if @post.title.present? %>
+                <h1 class="text-lg font-bold bg-gradient-to-r from-teal-400 to-blue-400 bg-clip-text text-transparent mb-2"><%= @post.title %></h1>
+              <% end %>
+              <div class="flex space-x-3">
+                <%= image_tag @post.user.avatar_variant(:thumb), class: "h-8 w-8 rounded-full object-cover flex-shrink-0" %>
+                <div>
+                  <p class="text-gray-300 leading-relaxed">
+                    <span class="font-semibold text-gray-100"><%= @post.user.username %></span>
+                    <%= @post.caption %>
+                  </p>
+                  <div class="flex items-center mt-2 text-xs text-gray-500">
+                    <span><%= time_ago_in_words(@post.created_at) %> ago</span>
+                    <% if @post.respond_to?(:location) && @post.location.present? %>
+                      <span class="mx-1">•</span>
+                      <span><i class="fas fa-map-marker-alt mr-1"></i> <%= @post.location %></span>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Comments -->
+            <div class="p-4" id="comments-section">
+              <% if @post.comments.any? %>
+                <% @post.comments.order(created_at: :desc).each do |comment| %>
+                  <div class="flex space-x-3 mb-4 group" id="comment-<%= comment.id %>">
+                    <%= link_to user_path(comment.user) do %>
+                      <%= image_tag comment.user.avatar_variant(:thumb), class: "h-8 w-8 rounded-full object-cover flex-shrink-0" %>
+                    <% end %>
+                    <div class="flex-1">
+                      <div class="text-gray-200">
+                        <%= link_to comment.user.username, user_path(comment.user), class: "font-semibold text-gray-100 hover:text-teal-400 transition-colors" %>
+                        <%= comment.body %>
+                      </div>
+                      <div class="flex items-center mt-1 text-xs text-gray-500">
+                        <span><%= time_ago_in_words(comment.created_at) %> ago</span>
+                        
+                        <!-- Comment like & reply (placeholder for future feature) -->
+                        <button class="ml-4 text-gray-500 hover:text-gray-300 transition-colors hidden group-hover:inline-block">Like</button>
+                        <button class="ml-4 text-gray-500 hover:text-gray-300 transition-colors hidden group-hover:inline-block">Reply</button>
+                        
+                        <!-- Comment delete (for author or admin) -->
+                        <% if user_signed_in? && (comment.user == current_user) %>
+                          <%= button_to post_comment_path(@post, comment), method: :delete, remote: true,
+                              class: "ml-auto text-red-500/70 hover:text-red-500 transition-colors text-xs opacity-0 group-hover:opacity-100",
+                              form: { data: { turbo: false }, class: "inline" },
+                              data: { confirm: "Delete this comment?" } do %>
+                            <i class="fas fa-trash-alt"></i>
+                          <% end %>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              <% else %>
+                <div class="text-center py-6 text-gray-500">
+                  <i class="far fa-comment-dots text-3xl mb-2 opacity-50"></i>
+                  <p>No comments yet. Be the first to comment!</p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+          
+          <!-- Actions Bar -->
+          <div class="border-t border-gray-800 p-4">
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-4">
+                <!-- Like Button -->
+                <div class="relative">
+                  <% if user_signed_in? %>
+                    <% if current_user.likes?(@post) %>
+                      <%= button_to like_post_path(@post), method: :delete, remote: true, form: { data: { turbo: false }, class: "like-form" }, 
+                          class: "text-red-500 hover:scale-110 transition-all bg-black/20 p-2.5 rounded-full" do %>
+                        <i class="fas fa-heart text-xl"></i>
+                      <% end %>
+                    <% else %>
+                      <%= button_to like_post_path(@post), method: :post, remote: true, form: { data: { turbo: false }, class: "like-form" }, 
+                          class: "text-gray-300 hover:text-red-500 hover:scale-110 transition-all bg-black/20 p-2.5 rounded-full" do %>
+                        <i class="far fa-heart text-xl"></i>
+                      <% end %>
+                    <% end %>
+                  <% else %>
+                    <%= link_to new_user_session_path, class: "text-gray-300 hover:text-red-500 transition-all bg-black/20 p-2.5 rounded-full" do %>
+                      <i class="far fa-heart text-xl"></i>
+                    <% end %>
+                  <% end %>
+                </div>
+
+                <!-- Comment Button -->
+                <button type="button" onclick="document.getElementById('comment-input').focus();"
+                    class="text-gray-300 hover:text-blue-400 hover:scale-110 transition-all bg-black/20 p-2.5 rounded-full">
+                  <i class="far fa-comment text-xl"></i>
+                </button>
+
+                <!-- Share Button (placeholder for future feature) -->
+                <button type="button" class="text-gray-300 hover:text-green-400 hover:scale-110 transition-all bg-black/20 p-2.5 rounded-full">
+                  <i class="far fa-paper-plane text-xl"></i>
+                </button>
+              </div>
+
+              <!-- Save Button -->
+              <div>
+                <% if user_signed_in? %>
+                  <% if current_user.saved?(@post) %>
+                    <%= button_to save_post_path(@post), method: :delete, remote: true, form: { data: { turbo: false }, class: "save-form" }, 
+                        class: "text-teal-400 hover:scale-110 transition-all bg-black/20 p-2.5 rounded-full" do %>
+                      <i class="fas fa-bookmark text-xl"></i>
+                    <% end %>
+                  <% else %>
+                    <%= button_to save_post_path(@post), method: :post, remote: true, form: { data: { turbo: false }, class: "save-form" }, 
+                        class: "text-gray-300 hover:text-teal-400 hover:scale-110 transition-all bg-black/20 p-2.5 rounded-full" do %>
+                      <i class="far fa-bookmark text-xl"></i>
+                    <% end %>
                   <% end %>
                 <% else %>
-                  <%= button_to save_post_path(@post), method: :post, remote: true, class: "save-button text-gray-400 hover:text-teal-500 hover:scale-110 transition-transform" do %>
+                  <%= link_to new_user_session_path, class: "text-gray-300 hover:text-teal-400 transition-all bg-black/20 p-2.5 rounded-full" do %>
                     <i class="far fa-bookmark text-xl"></i>
                   <% end %>
                 <% end %>
-              <% else %>
-                <i class="far fa-bookmark text-gray-500 text-xl"></i>
-              <% end %>
-              <span class="text-sm text-gray-400">Save</span>
+              </div>
             </div>
+
+            <!-- Like Count -->
+            <div class="mb-3">
+              <button type="button" class="text-sm font-semibold text-gray-100 hover:underline focus:outline-none">
+                <%= pluralize(@post.likes.count, 'like') %>
+              </button>
+            </div>
+
+            <!-- Timestamp -->
+            <div class="text-gray-500 text-xs uppercase font-medium tracking-wider mb-3">
+              <%= @post.created_at.strftime("%B %d, %Y") %>
+            </div>
+
+            <!-- Comment Form -->
+            <% if @post.present? %>
+              <% if user_signed_in? %>
+                <%= form_with(model: [@post, Comment.new], remote: true, html: { class: "flex items-center border-t border-gray-800/50 pt-3" }) do |f| %>
+                  <div class="relative flex-1">
+                    <%= f.text_field :body, placeholder: "Add a comment...", 
+                        class: "w-full bg-transparent text-gray-200 placeholder-gray-500 focus:outline-none",
+                        id: "comment-input" %>
+                  </div>
+                  <%= f.submit "Post", 
+                      class: "ml-4 text-teal-400 font-semibold hover:text-teal-300 bg-transparent focus:outline-none disabled:opacity-50 disabled:pointer-events-none",
+                      data: { disable_with: "Posting..." } %>
+                <% end %>
+              <% else %>
+                <p class="text-center text-gray-500 text-sm pt-3">
+                  <%= link_to "Sign in", new_user_session_path, class: "text-teal-400 hover:underline" %> to like or comment.
+                </p>
+              <% end %>
+            <% end %>
           </div>
         </div>
       </div>
     </div>
   <% else %>
-    <div class="p-8 text-center">
+    <div class="p-8 text-center bg-gray-900 rounded-2xl border border-gray-800">
+      <i class="fas fa-exclamation-circle text-4xl text-gray-700 mb-4"></i>
       <p class="text-gray-400">This post is not available or has been deleted.</p>
+      <div class="mt-6">
+        <%= link_to root_path, class: "inline-flex items-center bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white px-6 py-2 rounded-full transition-all text-sm font-medium" do %>
+          <i class="fas fa-home mr-2"></i> Back to feed
+        <% end %>
+      </div>
     </div>
   <% end %>
 
-  <!-- Back Button -->
-  <div class="mt-8">
-    <%= link_to :back, class: "inline-flex items-center bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-4 py-2 rounded-full transition-colors text-sm" do %>
-      <i class="fas fa-arrow-left mr-2"></i> Back to feed
-    <% end %>
-  </div>
+  <!-- More from this user -->
+  <% if @post&.user && @post.user.posts.where.not(id: @post.id).exists? %>
+    <div class="mt-12">
+      <h2 class="text-xl font-bold text-gray-100 mb-6 flex items-center">
+        <span class="bg-gradient-to-r from-teal-400 to-blue-400 h-6 w-1 rounded mr-3"></span>
+        More from <%= @post.user.username %>
+      </h2>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <% @post.user.posts.where.not(id: @post.id).order(created_at: :desc).limit(4).each do |related_post| %>
+          <%= link_to post_path(related_post), class: "block aspect-square overflow-hidden rounded-xl border border-gray-800 hover:border-teal-500/50 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-teal-900/20" do %>
+            <% if related_post.image.attached? %>
+              <%= image_tag related_post.image_variant(:thumb), class: "w-full h-full object-cover" %>
+            <% else %>
+              <div class="w-full h-full flex items-center justify-center bg-gray-900">
+                <i class="fas fa-image text-2xl text-gray-700"></i>
+              </div>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Double tap to like
+    const doubleTapArea = document.querySelector('.double-tap-area');
+    if (doubleTapArea) {
+      let lastTap = 0;
+      
+      doubleTapArea.addEventListener('click', function(e) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        
+        if (tapLength < 300 && tapLength > 0) {
+          // Double tap detected
+          e.preventDefault();
+          const postId = this.dataset.postId;
+          const isLiked = this.dataset.liked === 'true';
+          const heartEffect = this.querySelector('.double-tap-effect');
+          
+          if (!isLiked && <%= user_signed_in? ? 'true' : 'false' %>) {
+            // Like post via AJAX if not already liked
+            heartEffect.classList.add('active');
+            
+            fetch('<%= like_post_path(@post) %>', {
+              method: 'POST',
+              headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Update like button state
+                document.querySelector('.like-form button i').className = 'fas fa-heart text-xl';
+                document.querySelector('.like-form button').className = 'text-red-500 hover:scale-110 transition-all bg-black/20 p-2.5 rounded-full';
+                
+                // Update like count
+                const likeCount = parseInt(data.count);
+                document.querySelector('.like-count').textContent = `${likeCount} ${likeCount === 1 ? 'like' : 'likes'}`;
+                
+                // Update double tap area data attribute
+                this.dataset.liked = 'true';
+              }
+            })
+            .catch(error => console.error('Error:', error));
+            
+            setTimeout(() => {
+              heartEffect.classList.remove('active');
+            }, 1000);
+          }
+        }
+        
+        lastTap = currentTime;
+      });
+    }
+  });
+</script>
+

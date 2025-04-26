@@ -1,12 +1,12 @@
-<div class="max-w-lg mx-auto bg-gray-900 shadow-lg rounded-lg overflow-hidden">
-  <div class="px-6 py-4 border-b border-gray-700">
-    <h1 class="text-2xl font-bold text-teal-400 text-center">Edit Profile</h1>
+<div class="max-w-2xl mx-auto bg-gray-900 shadow-xl rounded-lg overflow-hidden my-8">
+  <div class="px-6 py-5 border-b border-gray-700">
+    <h1 class="text-2xl font-bold text-teal-400 text-center">Edit Your Profile</h1>
   </div>
 
   <% if @user.errors.any? %>
-    <div class="bg-red-500 text-white p-4 rounded-lg mb-6">
-      <h2 class="font-bold mb-2">There were errors with your submission:</h2>
-      <ul class="list-disc list-inside">
+    <div class="bg-red-600 text-white p-4 m-6 rounded-lg shadow-md">
+      <h2 class="font-semibold text-lg mb-2">Please fix the following errors:</h2>
+      <ul class="list-disc list-inside space-y-1">
         <% @user.errors.full_messages.each do |message| %>
           <li><%= message %></li>
         <% end %>
@@ -15,45 +15,68 @@
   <% end %>
 
   <%= form_with model: @user, local: true, class: "p-6 space-y-6" do |f| %>
-    <%# Username Field %>
-    <div>
-      <%= f.label :username, "Username", class: "block text-sm font-medium text-gray-300 mb-2" %>
-      <%= f.text_field :username, placeholder: "Enter your username", class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
-      <p class="text-sm text-gray-400 mt-1">Your unique username for the platform.</p>
-    </div>
+    <%# Profile Information Section %>
+    <fieldset class="space-y-4">
+      <legend class="text-lg font-medium text-teal-300 mb-3">Profile Information</legend>
 
-    <%# Email Field %>
-    <div>
-      <%= f.label :email, "Email", class: "block text-sm font-medium text-gray-300 mb-2" %>
-      <%= f.email_field :email, placeholder: "Enter your email", class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
-      <p class="text-sm text-gray-400 mt-1">We'll never share your email with anyone else.</p>
-    </div>
+      <%# Username Field %>
+      <div>
+        <%= f.label :username, class: "block text-sm font-medium text-gray-300 mb-1" %>
+        <%= f.text_field :username, placeholder: "e.g., cool_user_123", class: "w-full bg-gray-800 border border-gray-700 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition" %>
+        <p class="text-xs text-gray-400 mt-1">Your unique username.</p>
+      </div>
 
-    <%# Bio Field %>
-    <div>
-      <%= f.label :bio, "Bio", class: "block text-sm font-medium text-gray-300 mb-2" %>
-      <%= f.text_area :bio, rows: 4, placeholder: "Tell us about yourself...", class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
-      <p class="text-sm text-gray-400 mt-1">Share a little about yourself for your profile.</p>
-    </div>
+      <%# Bio Field %>
+      <div>
+        <%= f.label :bio, "Bio", class: "block text-sm font-medium text-gray-300 mb-1" %>
+        <%= f.text_area :bio, rows: 4, placeholder: "Tell the world a bit about yourself...", class: "w-full bg-gray-800 border border-gray-700 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition" %>
+        <p class="text-xs text-gray-400 mt-1">Appears on your profile page.</p>
+      </div>
 
-    <%# Website Field %>
-    <div>
-      <%= f.label :website, "Website", class: "block text-sm font-medium text-gray-300 mb-2" %>
-      <%= f.url_field :website, placeholder: "Enter your website URL", class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
-      <p class="text-sm text-gray-400 mt-1">Optional. Add a link to your personal website or portfolio.</p>
-    </div>
+      <%# Website Field %>
+      <div>
+        <%= f.label :website, "Website", class: "block text-sm font-medium text-gray-300 mb-1" %>
+        <%= f.url_field :website, placeholder: "https://your-website.com", class: "w-full bg-gray-800 border border-gray-700 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition" %>
+        <p class="text-xs text-gray-400 mt-1">Optional. Link to your personal site or portfolio.</p>
+      </div>
+    </fieldset>
 
-    <%# Avatar Upload Field %>
-    <div>
-      <%= f.label :avatar, "Profile Picture", class: "block text-sm font-medium text-gray-300 mb-2" %>
-      <%= f.file_field :avatar, class: "w-full bg-gray-800 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500" %>
-      <p class="text-sm text-gray-400 mt-1">Upload a profile picture to personalize your account.</p>
-    </div>
+    <%# Account Information Section %>
+    <fieldset class="space-y-4 border-t border-gray-700 pt-6">
+       <legend class="text-lg font-medium text-teal-300 mb-3">Account Information</legend>
+
+      <%# Email Field %>
+      <div>
+        <%= f.label :email, "Email Address", class: "block text-sm font-medium text-gray-300 mb-1" %>
+        <%= f.email_field :email, placeholder: "your.email@example.com", class: "w-full bg-gray-800 border border-gray-700 text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition" %>
+        <p class="text-xs text-gray-400 mt-1">Used for login and notifications. Never shared publicly.</p>
+      </div>
+
+      <%# Avatar Upload Field %>
+      <div>
+        <%= f.label :avatar, "Profile Picture", class: "block text-sm font-medium text-gray-300 mb-2" %>
+        <div class="flex items-center space-x-4">
+          <% if @user.avatar.attached? %>
+            <%= image_tag @user.avatar.variant(resize_to_limit: [100, 100]), class: "h-16 w-16 rounded-full object-cover border-2 border-gray-600" %>
+          <% else %>
+            <div class="h-16 w-16 rounded-full bg-gray-700 flex items-center justify-center text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+          <% end %>
+          <div class="flex-grow">
+            <%= f.file_field :avatar, class: "block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-700 cursor-pointer" %>
+            <p class="text-xs text-gray-400 mt-1">Upload a new picture. Leave blank to keep current.</p>
+          </div>
+        </div>
+      </div>
+    </fieldset>
 
     <%# Action Buttons %>
-    <div class="flex justify-between items-center">
-      <%= link_to "Cancel", user_path(@user), class: "px-6 py-2 bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2" %>
-      <%= f.submit "Save Changes", class: "px-6 py-2 bg-teal-500 text-white font-semibold rounded-lg hover:bg-teal-600 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" %>
+    <div class="flex justify-end items-center pt-6 border-t border-gray-700 space-x-3">
+      <%= link_to "Cancel", user_path(@user), class: "px-5 py-2 bg-gray-700 text-white font-medium rounded-lg hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900" %>
+      <%= f.submit "Save Changes", class: "px-5 py-2 bg-teal-500 text-white font-semibold rounded-lg hover:bg-teal-600 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-gray-900 cursor-pointer" %>
     </div>
   <% end %>
 </div>

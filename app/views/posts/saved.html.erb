@@ -1,4 +1,282 @@
-<div>
-  <h1 class="font-bold text-4xl">Posts#saved</h1>
-  <p>Find me in app/views/posts/saved.html.erb</p>
+<div class="max-w-6xl mx-auto py-10 px-4">
+  <!-- Header with tabs -->
+  <div class="mb-10">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-bold text-white flex items-center">
+        <span class="bg-gradient-to-r from-teal-400 to-blue-400 text-transparent bg-clip-text">Saved Items</span>
+        <span class="ml-3 text-sm bg-gray-800 text-gray-300 py-1 px-3 rounded-full">
+          <%= pluralize(@saved_posts.count, 'post') %>
+        </span>
+      </h1>
+      
+      <div class="flex items-center space-x-4">
+        <!-- View toggle buttons -->
+        <div class="bg-gray-800 rounded-lg p-1 flex">
+          <button class="view-toggle active px-3 py-1.5 rounded-md text-sm font-medium text-white bg-gray-700" 
+                 data-view="grid">
+            <i class="fas fa-th mr-1"></i> Grid
+          </button>
+          <button class="view-toggle px-3 py-1.5 rounded-md text-sm font-medium text-gray-400 hover:text-white" 
+                 data-view="list">
+            <i class="fas fa-list mr-1"></i> List
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collections tabs (placeholder for future feature) -->
+    <div class="flex items-center space-x-2 overflow-x-auto pb-2 hide-scrollbar">
+      <button class="collection-tab active whitespace-nowrap px-4 py-2 bg-teal-500/10 text-teal-400 rounded-full text-sm font-medium">
+        All Items
+      </button>
+      <button class="collection-tab whitespace-nowrap px-4 py-2 bg-gray-800 text-gray-400 hover:text-white rounded-full text-sm font-medium">
+        <i class="fas fa-plus mr-1 text-xs"></i> Create Collection
+      </button>
+    </div>
+  </div>
+
+  <!-- Saved posts content -->
+  <% if @saved_posts.present? %>
+    <!-- Grid view (default) -->
+    <div id="grid-view" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <% @saved_posts.each do |post| %>
+        <div class="saved-post-card group relative bg-gray-800 rounded-xl overflow-hidden aspect-square">
+          <% if post.image.attached? %>
+            <%= link_to post_path(post) do %>
+              <%= image_tag url_for(post.image), class: "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" %>
+            <% end %>
+          <% else %>
+            <%= link_to post_path(post) do %>
+              <div class="w-full h-full flex items-center justify-center bg-gray-900">
+                <i class="fas fa-image text-4xl text-gray-700"></i>
+              </div>
+            <% end %>
+          <% end %>
+          
+          <!-- Hover overlay -->
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+            <div class="flex items-center space-x-2 mb-2">
+              <%= link_to user_path(post.user) do %>
+                <%= image_tag post.user.avatar_url(24), class: "w-6 h-6 rounded-full border border-gray-600" %>
+                <span class="text-sm font-medium text-white"><%= post.user.username %></span>
+              <% end %>
+            </div>
+            
+            <p class="text-sm text-gray-200 line-clamp-2 mb-2">
+              <%= post.caption %>
+            </p>
+            
+            <div class="flex items-center justify-between">
+
+              <div class="flex items-center space-x-3">
+                <span class="flex items-center text-xs text-gray-300">
+                  <i class="fas fa-heart mr-1"></i> <%= post.likes.count %>
+                </span>
+                <span class="flex items-center text-xs text-gray-300">
+                  <i class="fas fa-comment mr-1"></i> <%= post.comments.count %>
+                </span>
+              </div>
+              
+              <!-- Unsave button -->
+              <%= button_to save_post_path(post), method: :delete, remote: true, 
+                  form: { data: { turbo: false }, class: "unsave-form" },
+                  class: "text-teal-400 hover:text-white text-sm" do %>
+                <i class="fas fa-bookmark"></i>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- List view (hidden by default) -->
+    <div id="list-view" class="hidden space-y-4">
+      <% @saved_posts.each do |post| %>
+        <div class="saved-post-item bg-gray-800 rounded-xl overflow-hidden hover:bg-gray-750 transition-colors">
+          <div class="flex flex-col sm:flex-row">
+            <div class="sm:w-48 h-48 sm:h-auto flex-shrink-0">
+              <% if post.image.attached? %>
+                <%= link_to post_path(post) do %>
+                  <%= image_tag url_for(post.image), class: "w-full h-full object-cover" %>
+                <% end %>
+              <% else %>
+                <div class="w-full h-full flex items-center justify-center bg-gray-900">
+                  <i class="fas fa-image text-4xl text-gray-700"></i>
+                </div>
+              <% end %>
+            </div>
+            
+            <div class="p-5 flex flex-col flex-1">
+              <div class="flex items-center justify-between mb-2">
+                <%= link_to user_path(post.user), class: "flex items-center space-x-2" do %>
+                  <%= image_tag post.user.avatar_url(32), class: "w-8 h-8 rounded-full border border-gray-600" %>
+                  <span class="text-sm font-medium text-white"><%= post.user.username %></span>
+                <% end %>
+                
+                <small class="text-gray-500"><%= time_ago_in_words(post.created_at) %> ago</small>
+              </div>
+              
+              <h2 class="font-semibold text-lg text-white mb-1">
+                <%= post.title.present? ? post.title : "Untitled Post" %>
+              </h2>
+              
+              <p class="text-gray-400 text-sm mb-4 line-clamp-2"><%= post.caption %></p>
+              
+              <div class="flex items-center justify-between mt-auto">
+                <div class="flex items-center space-x-4">
+                  <span class="flex items-center text-sm text-gray-300">
+                    <i class="fas fa-heart mr-1 text-red-500"></i> <%= post.likes.count %>
+                  </span>
+                  <span class="flex items-center text-sm text-gray-300">
+                    <i class="fas fa-comment mr-1 text-blue-400"></i> <%= post.comments.count %>
+                  </span>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                  <%= link_to post_path(post), class: "text-teal-400 hover:text-teal-300 transition-colors py-1.5 px-3 rounded-md text-sm bg-gray-900/50" do %>
+                    <i class="fas fa-eye mr-1"></i> View
+                  <% end %>
+                  
+                  <%= button_to save_post_path(post), method: :delete, remote: true, 
+                      form: { data: { turbo: false }, class: "unsave-form" },
+                      class: "text-red-400 hover:text-red-300 transition-colors py-1.5 px-3 rounded-md text-sm bg-gray-900/50" do %>
+                    <i class="fas fa-bookmark-slash mr-1"></i> Unsave
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+  <% else %>
+    <!-- Empty state -->
+    <div class="text-center py-16 bg-gray-900 rounded-xl border border-gray-800 max-w-2xl mx-auto">
+      <div class="mb-8">
+        <div class="relative w-32 h-32 mx-auto">
+          <div class="absolute inset-0 blur-xl bg-gradient-to-r from-teal-500/20 to-blue-500/20 rounded-full"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <i class="fas fa-bookmark text-5xl text-gray-700"></i>
+          </div>
+        </div>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2">No saved posts yet</h2>
+      <p class="text-gray-400 text-lg max-w-md mx-auto mb-8">
+        Save posts that you want to see again by tapping the bookmark icon.
+      </p>
+      <%= link_to explore_posts_path, class: "inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white font-medium rounded-xl transition-all" do %>
+        <i class="fas fa-compass mr-2"></i> Explore Posts
+      <% end %>
+    </div>
+  <% end %>
 </div>
+
+<style>
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .collection-tab.active {
+    background-color: rgba(45, 212, 191, 0.2);
+    color: #2dd4bf;
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle between grid and list views
+    const viewToggles = document.querySelectorAll('.view-toggle');
+    const gridView = document.getElementById('grid-view');
+    const listView = document.getElementById('list-view');
+    
+    viewToggles.forEach(button => {
+      button.addEventListener('click', function() {
+        // Update active state on buttons
+        viewToggles.forEach(btn => btn.classList.remove('active', 'bg-gray-700', 'text-white'));
+        button.classList.add('active', 'bg-gray-700', 'text-white');
+        
+        // Show the selected view
+        const view = this.dataset.view;
+        if (view === 'grid') {
+          gridView.classList.remove('hidden');
+          listView.classList.add('hidden');
+        } else {
+          gridView.classList.add('hidden');
+          listView.classList.remove('hidden');
+        }
+      });
+    });
+    
+    // Handle unsave button functionality with AJAX
+    document.querySelectorAll('.unsave-form').forEach(form => {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const cardElement = this.closest('.saved-post-card') || this.closest('.saved-post-item');
+        
+        fetch(this.action, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+          },
+          credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Animated removal
+            cardElement.style.transition = 'opacity 0.3s, transform 0.3s';
+            cardElement.style.opacity = '0';
+            cardElement.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+              cardElement.remove();
+              
+              // Update the saved posts count
+              const countBadge = document.querySelector('h1 .rounded-full');
+              if (countBadge) {
+                const currentCount = parseInt(countBadge.textContent);
+                if (currentCount > 1) {
+                  countBadge.textContent = `${currentCount - 1} posts`;
+                } else {
+                  countBadge.textContent = '0 posts';
+                  
+                  // If no posts left, show empty state
+                  if (document.querySelectorAll('.saved-post-card, .saved-post-item').length === 0) {
+                    location.reload(); // Simpler approach - reload to show empty state
+                  }
+                }
+              }
+              
+              // Show feedback toast
+              const toast = document.createElement('div');
+              toast.className = 'fixed bottom-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white z-50 animate-fade-in-up';
+              toast.style.backgroundColor = '#374151';
+              toast.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Post removed from saved items';
+              document.body.appendChild(toast);
+              
+              setTimeout(() => {
+                toast.classList.add('animate-fade-out-down');
+                setTimeout(() => toast.remove(), 500);
+              }, 2000);
+            }, 300);
+          }
+        })
+        .catch(error => console.error('Error:', error));
+      });
+    });
+  });
+</script>

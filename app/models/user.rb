@@ -22,19 +22,6 @@ class User < ApplicationRecord
   has_many :passive_follows, class_name: "Follow", foreign_key: "followed_id", dependent: :destroy
   has_many :followers, through: :passive_follows, source: :follower
   
-  # Saved posts
-  has_many :post_saves,
-           class_name: "PostSave",
-           dependent: :destroy
-  has_many :saved_posts,
-           through:  :post_saves,
-           source:   :post
-
-  # Polymorphic saves association
-  has_many :saves, dependent: :destroy
-  has_many :saved_posts, -> { where(saves: { saveable_type: 'Post' }) }, through: :saves, source: :saveable, source_type: 'Post'
-  has_many :saved_reels, -> { where(saves: { saveable_type: 'Reel' }) }, through: :saves, source: :saveable, source_type: 'Reel'
-  
   # Notifications
   has_many :notifications, dependent: :destroy
   
@@ -43,6 +30,12 @@ class User < ApplicationRecord
 
   # Stories
   has_many :stories, dependent: :destroy
+  has_many :story_views, dependent: :destroy
+  has_many :viewed_stories, through: :story_views, source: :story
+
+  # Saves
+  has_many :saves, dependent: :destroy
+  has_many :saved_posts, through: :saves, source: :saveable, source_type: 'Post'
   
   # Profile information
   validates :username, presence: true, uniqueness: true, length: { minimum: 3, maximum: 30 }
@@ -56,7 +49,7 @@ class User < ApplicationRecord
   
   # Follow methods
   def follow(user)
-    following << user unless self == user || following.include?(user)
+    following << user unless self == user || following?(user)
   end
   
   def unfollow(user)
@@ -67,12 +60,34 @@ class User < ApplicationRecord
     following.include?(user)
   end
 
-  def avatar_url(size: 100)
+  # Returns a URL for the user's avatar. Accepts any arguments (positional or keyword).
+  def avatar_url(*args, **kwargs)
+    # Determine size and style from positional args or keyword args
+    size = args[0] || kwargs[:size] || 100
+    style = args[1] || kwargs[:style]
+
     if avatar.attached?
-      # Use a simpler approach that doesn't require full URL generation
-      "data:#{avatar.content_type};base64,#{Base64.strict_encode64(avatar.download)}"
+      variant = if style == :thumb
+        avatar.variant(resize_to_fill: [size, size]).processed
+      else
+        avatar.variant(resize_to_fill: [size, size]).processed
+      end
+      Rails.application.routes.url_helpers.rails_representation_url(variant, only_path: true)
     else
       "https://ui-avatars.com/api/?name=#{username}&size=#{size}"
+    end
+  end
+
+  # Avatar variants for optimization
+  def avatar_variant(size = :medium)
+    return unless avatar.attached?
+    case size
+    when :thumb
+      avatar.variant(resize_to_fill: [80, 80]).processed
+    when :medium
+      avatar.variant(resize_to_limit: [400, 400]).processed
+    else
+      avatar
     end
   end
 
@@ -80,12 +95,21 @@ class User < ApplicationRecord
     likeable.likes.where(user_id: id).exists?
   end
 
-  def saved?(saveable)
-    saves.exists?(saveable: saveable)
+  def saved?(post)
+    # Directly check the saves association for the specific post
+    saves.exists?(saveable_id: post.id, saveable_type: 'Post')
   end
 
-  def saved?(post)
-    saved_posts.include?(post)
+  def admin?
+    self.admin == true
+  end
+
+  def make_admin!
+    update(admin: true)
+  end
+
+  def revoke_admin!
+    update(admin: false)
   end
 
   private

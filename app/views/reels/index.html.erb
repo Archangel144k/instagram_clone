@@ -69,7 +69,7 @@
               <div class="flex items-center">
                 <% if reel.user.avatar.attached? %>
                   <div class="w-7 h-7 rounded-full ring-2 ring-teal-500 overflow-hidden">
-                    <%= image_tag reel.user.avatar_url(size: 32), class: "w-full h-full object-cover" %>
+                    <%= image_tag reel.user.avatar_url(32), class: "w-full h-full object-cover" %>
                   </div>
                 <% else %>
                   <div class="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center ring-2 ring-teal-500">

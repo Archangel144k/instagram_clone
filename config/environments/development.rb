@@ -32,6 +32,9 @@ Rails.application.configure do
   config.active_storage.service = :local
   config.active_storage.default_url_options = { host: 'http://localhost:3000' }
 
+  # Enable direct uploads
+  config.active_storage.replace_on_assign_to_many = false
+
   # Set host for URL generation
   config.action_controller.default_url_options = { host: 'localhost', port: 3000 }
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_23_043104) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_26_033223) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -61,12 +61,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_23_043104) do
   create_table "comments", force: :cascade do |t|
     t.text "content"
     t.integer "user_id", null: false
-    t.integer "post_id", null: false
+    t.integer "post_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "commentable_type"
     t.integer "commentable_id"
+    t.text "body"
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
+    t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable_type_and_commentable_id"
     t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
@@ -144,6 +146,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_23_043104) do
     t.datetime "updated_at", null: false
     t.string "slug"
     t.string "title"
+    t.string "location"
     t.index ["slug"], name: "index_posts_on_slug", unique: true
     t.index ["user_id"], name: "index_posts_on_user_id"
   end
@@ -175,7 +178,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_23_043104) do
     t.datetime "expires_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "caption"
     t.index ["user_id"], name: "index_stories_on_user_id"
+  end
+
+  create_table "story_views", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "story_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["story_id"], name: "index_story_views_on_story_id"
+    t.index ["user_id"], name: "index_story_views_on_user_id"
   end
 
   create_table "user_conversations", force: :cascade do |t|
@@ -200,6 +213,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_23_043104) do
     t.text "bio"
     t.string "website"
     t.string "slug"
+    t.boolean "admin", default: false
+    t.index ["admin"], name: "index_users_on_admin"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
@@ -220,6 +235,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_23_043104) do
   add_foreign_key "reels", "users"
   add_foreign_key "saves", "users"
   add_foreign_key "stories", "users"
+  add_foreign_key "story_views", "stories"
+  add_foreign_key "story_views", "users"
   add_foreign_key "user_conversations", "conversations"
   add_foreign_key "user_conversations", "users"
 end

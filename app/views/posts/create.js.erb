@@ -1,3 +1,7 @@
 document.querySelector('.save-button').innerHTML = `
   <i class="fas fa-bookmark text-teal-500 text-xl"></i>
 `;
+
+const list  = document.getElementById("comments-list-<%= @post.id %>");
+list.insertAdjacentHTML("beforeend", `<%= j render(@comment) %>`);
+document.getElementById("new_comment_form_<%= @post.id %>").reset();

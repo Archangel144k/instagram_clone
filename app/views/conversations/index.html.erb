@@ -9,7 +9,7 @@
           <div class="flex items-center space-x-4">
             <%# Display the other user's avatar and username %>
             <%= link_to user_path(other_user), class: "flex items-center space-x-2 group" do %>
-              <%= image_tag other_user.avatar_url(size: 40), class: "h-10 w-10 rounded-full object-cover border-2 border-gray-700 group-hover:border-teal-400 transition-colors" %>
+              <%= image_tag other_user.avatar_url(40), class: "h-10 w-10 rounded-full object-cover border-2 border-gray-700 group-hover:border-teal-400 transition-colors" %>
               <span class="text-gray-300 group-hover:text-teal-400 font-medium">
                 <%= other_user.username %>
               </span>

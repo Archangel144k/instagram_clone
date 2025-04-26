@@ -25,3 +25,12 @@ module BahamaGram
     # config.eager_load_paths << Rails.root.join("extras")
   end
 end
+
+module InstagramClone
+  class Application < Rails::Application
+    # Ensure JavaScript files are served with the correct MIME type
+    config.assets.configure do |env|
+      env.register_mime_type 'application/javascript', extensions: ['.js']
+    end
+  end
+end

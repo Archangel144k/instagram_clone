@@ -19,11 +19,11 @@
         preload="metadata"
         loop
         playsinline
+        muted
         class="max-w-full max-h-full mx-auto object-contain opacity-0 transition-opacity duration-500"
-        style="background: rgba(0,0,0,0.7);"
-        poster="<%= rails_blob_url(@reel.video) if @reel.video.attached? %>">
+        style="background: rgba(0,0,0,0.7);">
         <source src="<%= url_for(@reel.video) %>" type="<%= @reel.video.content_type %>">
-        <p class="text-white text-center p-4">Your browser doesn't support video playback.</p>
+        <p class="text-white text-center p-4">Your browser doesn't support HTML5 video.</p>
       </video>
       
       <!-- Custom Video Controls -->
@@ -177,7 +177,7 @@
     <%= link_to user_path(@reel.user), class: "flex items-center group" do %>
       <div class="relative">
         <% if @reel.user.avatar.attached? %>
-          <%= image_tag @reel.user.avatar_url(size: 48), class: "w-12 h-12 rounded-full object-cover border-2 border-teal-500 group-hover:border-teal-300 transition-all" %>
+          <%= image_tag @reel.user.avatar_url(48), class: "w-12 h-12 rounded-full object-cover border-2 border-teal-500 group-hover:border-teal-300 transition-all" %>
         <% else %>
           <div class="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center border-2 border-teal-500 group-hover:border-teal-300 transition-all">
             <span class="text-white font-bold text-lg"><%= @reel.user.username[0].upcase %></span>
@@ -252,7 +252,7 @@
         <% @comments.each do |comment| %>
           <div class="flex items-start bg-gray-800/50 p-3 rounded-lg hover:bg-gray-800 transition-colors" id="comment-<%= comment.id %>">
             <% if comment.user.avatar.attached? %>
-              <%= image_tag comment.user.avatar_url(size: 36), class: "w-9 h-9 rounded-full object-cover mr-3 border border-gray-700" %>
+              <%= image_tag comment.user.avatar_url(36), class: "w-9 h-9 rounded-full object-cover mr-3 border border-gray-700" %>
             <% else %>
               <div class="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center mr-3 border border-gray-700">
                 <span class="text-white font-semibold"><%= comment.user.username[0].upcase %></span>
@@ -373,157 +373,131 @@
 
 <!-- Script for handling interactions -->
 <script>
-  // Main initialization function
-  function initializeReelVideo() {
+  document.addEventListener('DOMContentLoaded', function() {
     const video = document.getElementById('reelVideo');
-    const placeholder = document.getElementById('video-placeholder');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseIcon = playPauseBtn.querySelector('i');
     const customControls = document.getElementById('customControls');
+    const progressBar = document.getElementById('progressBar');
+    const placeholder = document.getElementById('video-placeholder');
+    let isPlaying = false;
     
-    if (!video) return;
-    
-    console.log("Initializing reel video...");
-    
-    // Reset video state
-    video.pause();
-    video.currentTime = 0;
-    
-    // Force reload by updating source with cache buster
-    const sources = video.querySelectorAll('source');
-    sources.forEach(source => {
-      const originalSrc = source.getAttribute('src');
-      const cacheBuster = `cb=${Date.now()}`;
-      const newSrc = originalSrc.includes('?') ? 
-        `${originalSrc.split('?')[0]}?${cacheBuster}` : 
-        `${originalSrc}?${cacheBuster}`;
-        
-      source.setAttribute('src', newSrc);
-    });
-    
-    // Explicitly load the video
-    video.load();
-    
-    // Handle loading states
-    video.addEventListener('loadeddata', handleVideoLoaded);
-    video.addEventListener('loadedmetadata', handleVideoMetadataLoaded);
-    video.addEventListener('canplay', handleVideoCanPlay);
-    video.addEventListener('error', handleVideoError);
-    
-    // Set up a fallback in case events don't fire
-    const loadTimeout = setTimeout(() => {
-      if (video.classList.contains('opacity-0')) {
-        console.log("Fallback: Video load timeout reached");
-        showVideo();
-      }
-    }, 3000);
-    
-    function handleVideoLoaded() {
-      console.log("Video loaded");
-      clearTimeout(loadTimeout);
-      showVideo();
-      attemptAutoplay();
-    }
-    
-    function handleVideoMetadataLoaded() {
-      console.log("Video metadata loaded");
-    }
-    
-    function handleVideoCanPlay() {
-      console.log("Video can play");
-      if (video.classList.contains('opacity-0')) {
-        showVideo();
-      }
-    }
-    
-    function handleVideoError(e) {
-      console.error("Video error:", e);
-      // Still show the video element even if there's an error
-      showVideo();
-    }
-    
+    // Make video visible and remove placeholder
     function showVideo() {
       video.classList.remove('opacity-0');
       if (placeholder) {
         placeholder.classList.add('opacity-0');
-        setTimeout(() => {
-          if (placeholder) placeholder.style.display = 'none';
-        }, 500);
+        setTimeout(() => placeholder.style.display = 'none', 300);
+      }
+    }
+
+    // Manual play button click handler
+    playPauseBtn.addEventListener('click', function() {
+      if (video.paused) {
+        playVideo();
+      } else {
+        pauseVideo();
+      }
+    });
+    
+    // Play video with visual feedback
+    function playVideo() {
+      const playPromise = video.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          isPlaying = true;
+          playPauseIcon.classList.remove('fa-play');
+          playPauseIcon.classList.add('fa-pause');
+          customControls.classList.add('opacity-0');
+        }).catch(error => {
+          console.log("Playback prevented:", error);
+          // Show controls when autoplay is blocked
+          customControls.classList.add('opacity-100');
+        });
       }
     }
     
-    function attemptAutoplay() {
-      try {
-        const playPromise = video.play();
+    // Pause video with visual feedback
+    function pauseVideo() {
+      video.pause();
+      isPlaying = false;
+      playPauseIcon.classList.remove('fa-pause');
+      playPauseIcon.classList.add('fa-play');
+      customControls.classList.add('opacity-100');
+    }
+    
+    // Show controls on tap (mobile)
+    video.addEventListener('click', function() {
+      if (customControls.classList.contains('opacity-0')) {
+        customControls.classList.remove('opacity-0');
+        customControls.classList.add('opacity-100');
         
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            // Auto-play succeeded
-            console.log("Auto-play succeeded");
-            const playBtn = document.querySelector('#playPauseBtn i');
-            if (playBtn) {
-              playBtn.classList.remove('fa-play');
-              playBtn.classList.add('fa-pause');
-            }
-            if (customControls) {
-              customControls.classList.remove('opacity-100');
-            }
-          }).catch(err => {
-            // Auto-play was prevented (common on mobile)
-            console.log("Auto-play prevented:", err);
-            if (customControls) {
-              customControls.classList.add('opacity-100');
-            }
-          });
+        // Auto-hide controls after 2 seconds if video is playing
+        if (!video.paused) {
+          setTimeout(() => {
+            customControls.classList.remove('opacity-100');
+            customControls.classList.add('opacity-0');
+          }, 2000);
         }
-      } catch (err) {
-        console.error("Auto-play error:", err);
+      } else {
+        if (video.paused) {
+          playVideo();
+        } else {
+          pauseVideo();
+        }
       }
-    }
-  }
-
-  // Run initialization at different points to ensure video loads
-
-  // On initial page load
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOMContentLoaded - initializing video");
-    setTimeout(initializeReelVideo, 100); // Small delay to ensure DOM is fully accessible
-  });
-
-  // On Turbolinks/Hotwire navigation
-  if (typeof Turbolinks !== 'undefined') {
-    document.addEventListener('turbolinks:load', function() {
-      console.log("Turbolinks load - initializing video");
-      setTimeout(initializeReelVideo, 100);
     });
-  }
-
-  // For back/forward navigation from browser cache
-  window.addEventListener('pageshow', function(event) {
-    if (event.persisted) {
-      console.log("Page show (from cache) - initializing video");
-      setTimeout(initializeReelVideo, 100);
-    }
+    
+    // Update progress bar
+    video.addEventListener('timeupdate', function() {
+      const percentage = (video.currentTime / video.duration) * 100;
+      progressBar.style.width = percentage + '%';
+    });
+    
+    // Handle video loading
+    video.addEventListener('loadeddata', () => {
+      console.log("Video data loaded");
+      showVideo();
+    });
+    
+    video.addEventListener('canplay', () => {
+      console.log("Video can play now");
+      showVideo();
+      // Try autoplay with user activation
+      document.body.addEventListener('click', () => {
+        if (video.paused) {
+          playVideo();
+        }
+      }, { once: true });
+    });
+    
+    // Force video load after delay (if events don't fire)
+    setTimeout(() => {
+      if (video.classList.contains('opacity-0')) {
+        console.log("Forcing video visibility");
+        showVideo();
+      }
+      
+      // Try to play on first user interaction
+      document.body.addEventListener('click', () => {
+        if (video.paused) {
+          console.log("Attempting playback on user interaction");
+          playVideo();
+        }
+      }, { once: true });
+    }, 1000);
+    
+    // Handle video errors
+    video.addEventListener('error', (e) => {
+      console.error("Video error:", e);
+      const errorMessage = document.createElement('p');
+      errorMessage.textContent = "An error occurred while loading the video.";
+      errorMessage.style.color = "white";
+      errorMessage.style.textAlign = "center";
+      video.parentNode.insertBefore(errorMessage, video.nextSibling);
+    });
   });
-
-  // Mobile browsers may need user interaction
-  document.addEventListener('touchstart', function() {
-    const video = document.getElementById('reelVideo');
-    if (video && video.paused && video.readyState < 4) {
-      console.log("Touch interaction - preparing video");
-      video.load();
-    }
-  }, {once: true});
-
-  // As a last resort, try periodically
-  let checkAttempts = 0;
-  const checkInterval = setInterval(function() {
-    const video = document.getElementById('reelVideo');
-    if (video && video.classList.contains('opacity-0')) {
-      console.log(`Periodic check ${checkAttempts + 1} - initializing video`);
-      initializeReelVideo();
-    }
-    checkAttempts++;
-    if (checkAttempts >= 3) clearInterval(checkInterval);
-  }, 2000);
 </script>
 
 <style>

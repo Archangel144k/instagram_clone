@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="utf-8">
     <title>BahamaGram</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <%= csrf_meta_tags %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <%= javascript_import_module_tag "likeHandler" %>
+    <%= javascript_import_module_tag "commentHandler" %>
+    <%= javascript_import_module_tag "saveHandler" %>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js" defer></script>
     <script>
-      // Extend Tailwind with custom colors if needed
       tailwind.config = {
         theme: {
           extend: {
@@ -21,14 +27,15 @@
         }
       }
     </script>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
   </head>
 
   <body class="bg-black text-gray-100 antialiased">
-    <%# Enhanced Navbar %>
+    <!-- Enhanced Navbar -->
     <nav class="bg-gray-900 shadow-lg sticky top-0 z-50 border-b border-gray-800">
       <div class="max-w-screen-xl mx-auto px-4">
         <div class="relative flex items-center justify-between h-16">
-          <%# Mobile menu button %>
+          <!-- Mobile menu button -->
           <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
             <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-500" aria-controls="mobile-menu" aria-expanded="false">
               <span class="sr-only">Open main menu</span>
@@ -36,26 +43,35 @@
             </button>
           </div>
 
-          <%# Logo and Search - Desktop %>
-          <div class="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
-            <div class="flex-shrink-0 flex items-center">
-              <%= link_to root_path, class: "flex items-center" do %>
-                <span class="text-2xl font-bold text-teal-400 hover:text-teal-300">BahamaGram</span>
-              <% end %>
-            </div>
-            <div class="hidden sm:block sm:ml-6">
-              <div class="flex space-x-4">
-                <%= link_to explore_posts_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors" do %>
-                  <i class="fa-solid fa-compass mr-1"></i> Explore
-                <% end %>
-                <%= link_to reels_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors" do %>
-                  <i class="fa-solid fa-film mr-1"></i> Reels
-                <% end %>
-              </div>
-            </div>
+          <!-- Logo -->
+          <div class="flex-shrink-0 flex items-center">
+            <%= link_to root_path, class: "flex items-center" do %>
+              <span class="text-2xl font-bold text-teal-400 hover:text-teal-300">BahamaGram</span>
+            <% end %>
           </div>
 
-          <%# Search Bar - Desktop %>
+          <!-- Main Navigation Links -->
+          <div class="hidden sm:flex sm:items-center sm:space-x-4 ml-8">
+            <%= link_to posts_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors" do %>
+              <i class="fa-solid fa-house mr-1"></i> Feed
+            <% end %>
+            <%= link_to explore_posts_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors" do %>
+              <i class="fa-solid fa-compass mr-1"></i> Explore
+            <% end %>
+            <%= link_to reels_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors" do %>
+              <i class="fa-solid fa-film mr-1"></i> Reels
+            <% end %>
+            <%= link_to stories_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors" do %>
+              <i class="fa-solid fa-circle-nodes mr-1"></i> Stories
+            <% end %>
+            <% if user_signed_in? %>
+              <%= link_to saved_posts_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors" do %>
+                <i class="fa-solid fa-bookmark mr-1"></i> Saved
+              <% end %>
+            <% end %>
+          </div>
+
+          <!-- Search Bar - Desktop -->
           <div class="hidden sm:block flex-1 max-w-xs mx-4">
             <%= form_with url: posts_path, method: :get, class: "relative text-gray-400 focus-within:text-teal-400", data: { turbo: false } do |f| %>
               <span class="absolute inset-y-0 left-0 flex items-center pl-2">
@@ -65,27 +81,23 @@
             <% end %>
           </div>
 
-          <%# Right Navigation - Desktop %>
+          <!-- Right Navigation - Desktop -->
           <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
             <% if user_signed_in? %>
-              <%# New Post Button %>
               <%= link_to new_post_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 p-2 rounded-md transition-colors hidden sm:block" do %>
                 <i class="fa-solid fa-plus"></i> <span class="sr-only">New Post</span>
               <% end %>
-
-              <%# Notifications - With badge if there are unread notifications %>
               <%= link_to notifications_path, class: "relative p-2 text-gray-300 hover:bg-gray-700 hover:text-teal-400 rounded-md transition-colors" do %>
                 <i class="fa-solid fa-bell"></i>
-                <% if user_signed_in? && current_user.notifications.unread.any? %>
+                <% if current_user.notifications.unread.any? %>
                   <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 transform translate-x-1 -translate-y-1"></span>
                 <% end %>
                 <span class="sr-only">Notifications</span>
               <% end %>
-
-              <%# User Dropdown %>
+              <!-- User Dropdown -->
               <div class="ml-3 relative">
                 <div>
-                  <button id="user-menu-button" class="bg-gray-800 flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500" id="user-menu" aria-expanded="false" aria-haspopup="true">
+                  <button id="user-menu-button" class="bg-gray-800 flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500" aria-expanded="false" aria-haspopup="true">
                     <span class="sr-only">Open user menu</span>
                     <% if current_user.avatar.attached? %>
                       <%= image_tag current_user.avatar_url(size: 32), class: "h-8 w-8 rounded-full object-cover" %>
@@ -94,7 +106,6 @@
                     <% end %>
                   </button>
                 </div>
-                
                 <div id="user-dropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="user-menu">
                   <%= link_to user_path(current_user), class: "block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600" do %>
                     <i class="fa-solid fa-user mr-2"></i> Profile
@@ -123,87 +134,118 @@
         </div>
       </div>
 
-      <%# Mobile Menu %>
+      <!-- Mobile Menu -->
       <div id="mobile-menu" class="sm:hidden hidden">
         <div class="px-2 pt-2 pb-3 space-y-1">
+          <%= link_to posts_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
+            <i class="fa-solid fa-house mr-1"></i> Feed
+          <% end %>
           <%= link_to explore_posts_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
             <i class="fa-solid fa-compass mr-1"></i> Explore
           <% end %>
-          
+          <%= link_to reels_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
+            <i class="fa-solid fa-film mr-1"></i> Reels
+          <% end %>
+          <%= link_to stories_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
+            <i class="fa-solid fa-circle-nodes mr-1"></i> Stories
+          <% end %>
           <% if user_signed_in? %>
-            <%= link_to new_post_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
-              <i class="fa-solid fa-plus mr-1"></i> New Post
-            <% end %>
             <%= link_to saved_posts_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
               <i class="fa-solid fa-bookmark mr-1"></i> Saved
             <% end %>
+            <%= link_to new_post_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
+              <i class="fa-solid fa-plus mr-1"></i> New Post
+            <% end %>
             <%= link_to notifications_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
               <i class="fa-solid fa-bell mr-1"></i> Notifications
-              <% if user_signed_in? && current_user.notifications.unread.any? %>
+              <% if current_user.notifications.unread.any? %>
                 <span class="inline-block h-2 w-2 rounded-full bg-red-500 ml-1"></span>
               <% end %>
             <% end %>
             <%= link_to user_path(current_user), class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
               <i class="fa-solid fa-user mr-1"></i> Profile
             <% end %>
-
-            <%# Search Bar - Mobile %>
-            <div class="px-3 py-2">
-              <%= form_with url: posts_path, method: :get, class: "relative text-gray-400 focus-within:text-teal-400", data: { turbo: false } do |f| %>
-                <span class="absolute inset-y-0 left-0 flex items-center pl-5">
-                  <i class="fa-solid fa-search"></i>
-                </span>
-                <%= f.text_field :query, placeholder: "Search...", class: "bg-gray-700 w-full py-2 pl-10 pr-3 rounded-lg text-sm text-gray-100 placeholder-gray-400 focus:outline-none focus:bg-gray-600 focus:ring-1 focus:ring-teal-400" %>
-              <% end %>
-            </div>
+          <% else %>
+            <%= link_to new_user_session_path, class: "text-gray-300 hover:bg-gray-700 hover:text-teal-400 block px-3 py-2 rounded-md text-base font-medium" do %>
+              <i class="fa-solid fa-sign-in-alt mr-1"></i> Sign In
+            <% end %>
+            <%= link_to new_user_registration_path, class: "bg-teal-500 hover:bg-teal-600 text-white block px-3 py-2 rounded-md text-base font-medium transition-colors" do %>
+              <i class="fa-solid fa-user-plus mr-1"></i> Sign Up
+            <% end %>
           <% end %>
         </div>
       </div>
     </nav>
 
-    <%# Stories Navigation %>
-    <nav class="bg-gray-800 p-4">
-      <%= link_to "Stories", stories_path, class: "text-white hover:text-teal-400" %>
-    </nav>
-
-    <%# Flash Messages %>
+    <!-- Flash Messages -->
     <main class="container mx-auto mt-8 px-4">
-      <% flash.each do |type, msg| %>
-        <div class="bg-gray-900 border-l-4 <%= type == 'notice' ? 'border-teal-400 text-teal-100' : 'border-red-500 text-red-100' %> p-4 mb-4 rounded-r-lg" role="alert">
-          <p><%= msg %></p>
-        </div>
-      <% end %>
+      <div id="flash-messages" class="space-y-4">
+        <% flash.each do |type, msg| %>
+          <div class="relative bg-gray-900 border-l-4 <%= type == 'notice' ? 'border-teal-400 text-teal-100' : 'border-red-500 text-red-100' %> p-4 pr-12 rounded-r-lg shadow-md" role="alert">
+            <p><%= msg %></p>
+            <button type="button" class="absolute top-0 right-0 mt-4 mr-4 text-gray-500 hover:text-gray-300" data-dismiss-target="#flash-message-<%= type %>-<%= msg.hash %>" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        <% end %>
+      </div>
       <%= yield %>
     </main>
 
-    <%# JavaScript for dropdown and mobile menu toggle %>
+    <!-- JavaScript for dropdown, mobile menu, and flash message dismissal -->
     <script>
       // User dropdown toggle
       const userMenuButton = document.getElementById('user-menu-button');
       const userDropdown = document.getElementById('user-dropdown');
-      
       if (userMenuButton) {
         userMenuButton.addEventListener('click', () => {
           userDropdown.classList.toggle('hidden');
+          userMenuButton.setAttribute('aria-expanded', userDropdown.classList.contains('hidden') ? 'false' : 'true');
         });
-        
-        // Close dropdown when clicking outside
         document.addEventListener('click', (event) => {
           if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
             userDropdown.classList.add('hidden');
+            userMenuButton.setAttribute('aria-expanded', 'false');
           }
         });
       }
-      
       // Mobile menu toggle
       const mobileMenuButton = document.getElementById('mobile-menu-button');
       const mobileMenu = document.getElementById('mobile-menu');
-      
       if (mobileMenuButton) {
         mobileMenuButton.addEventListener('click', () => {
-          mobileMenu.classList.toggle('hidden');
+          const expanded = mobileMenu.classList.toggle('hidden');
+          mobileMenuButton.setAttribute('aria-expanded', !expanded);
         });
       }
+
+      // Function to dismiss a flash message
+      function dismissFlashMessage(element) {
+        if (element) {
+          element.style.transition = 'opacity 0.5s ease-out';
+          element.style.opacity = '0';
+          setTimeout(() => element.remove(), 500); // Remove after fade out
+        }
+      }
+
+      // Dismiss on click
+      document.addEventListener('click', function(event) {
+        const dismissButton = event.target.closest('[data-dismiss-target]');
+        if (dismissButton) {
+          const targetElement = dismissButton.closest('.relative[role="alert"]');
+          dismissFlashMessage(targetElement);
+        }
+      });
+
+      // Automatically dismiss after a delay
+      document.addEventListener('DOMContentLoaded', () => {
+        const flashMessages = document.querySelectorAll('#flash-messages .relative[role="alert"]');
+        flashMessages.forEach(flashMessage => {
+          setTimeout(() => {
+            dismissFlashMessage(flashMessage);
+          }, 5000); // Dismiss after 5 seconds (5000 milliseconds)
+        });
+      });
     </script>
   </body>
 </html>
