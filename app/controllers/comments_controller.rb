@@ -36,7 +36,7 @@ class CommentsController < ApplicationController
         )
       end
 
-      # Optional: Add notification logic here if needed
+      # Add notification logic (DRY suggestion)
       # Notification.create(recipient: @commentable.user, actor: current_user, action: "commented on", notifiable: @commentable) unless @commentable.user == current_user
 
       respond_to do |format|
@@ -60,7 +60,7 @@ class CommentsController < ApplicationController
     else
       respond_to do |format|
         format.html {
-          flash[:alert] = "Comment could not be saved: #{@comment.errors.full_messages.join(', ')}"
+          flash[:alert] = t('comments.create.error', default: "Comment could not be saved: #{@comment.errors.full_messages.join(', ')}")
           redirect_back(fallback_location: polymorphic_path(@commentable))
         }
         format.json { render json: { success: false, errors: @comment.errors.full_messages }, status: :unprocessable_entity }
@@ -116,5 +116,15 @@ class CommentsController < ApplicationController
 
   def comment_params
      params.require(:comment).permit(:body)
+  end
+
+  def respond_with_comment_error(message)
+    respond_to do |format|
+      format.html {
+        flash[:alert] = message
+        redirect_back(fallback_location: root_path)
+      }
+      format.json { render json: { success: false, errors: [message] }, status: :unprocessable_entity }
+    end
   end
 end

@@ -93,7 +93,7 @@ def avatar_url(size: 100)
   if avatar.attached?
     Rails.application.routes.url_helpers.rails_representation_url(
       avatar.variant(resize_to_fill: [size, size]).processed,
-      only_path: false
+      { only_path: false }
     )
   else
     "https://ui-avatars.com/api/?name=#{username}&size=#{size}"

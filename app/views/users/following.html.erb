@@ -9,15 +9,7 @@
         <div class="px-6 py-4 flex items-center justify-between">
           <div class="flex items-center">
             <%= link_to user_path(followed), class: "flex items-center" do %>
-              <% if followed.avatar.attached? %>
-                <%= image_tag followed.avatar.variant(resize_to_fill: [40, 40]), class: "h-10 w-10 rounded-full mr-4" %>
-              <% else %>
-                <div class="h-10 w-10 rounded-full bg-gray-200 mr-4 flex items-center justify-center">
-                  <svg class="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                </div>
-              <% end %>
+              <%= image_tag(followed.avatar.attached? ? followed.avatar_variant(resize_to_fill: [40, 40]) : followed.avatar_url(40), class: "h-10 w-10 rounded-full mr-4") %>
               
               <div>
                 <div class="font-medium text-gray-900"><%= followed.username %></div>

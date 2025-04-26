@@ -1,4 +1,5 @@
 require 'digest/md5'
+require 'cgi' # Add this line
 
 class User < ApplicationRecord
   extend FriendlyId
@@ -60,35 +61,43 @@ class User < ApplicationRecord
     following.include?(user)
   end
 
-  # Returns a URL for the user's avatar. Accepts any arguments (positional or keyword).
-  def avatar_url(*args, **kwargs)
-    # Determine size and style from positional args or keyword args
-    size = args[0] || kwargs[:size] || 100
-    style = args[1] || kwargs[:style]
-
+  # Returns a URL path for the user's avatar.
+  # Accepts size (:thumb, :medium, or integer)
+  def avatar_url(size = :medium)
     if avatar.attached?
-      variant = if style == :thumb
-        avatar.variant(resize_to_fill: [size, size]).processed
-      else
-        avatar.variant(resize_to_fill: [size, size]).processed
-      end
-      Rails.application.routes.url_helpers.rails_representation_url(variant, only_path: true)
+      # Call avatar_variant to get the processed variant URL path
+      avatar_variant(size)
     else
-      "https://ui-avatars.com/api/?name=#{username}&size=#{size}"
+      # Determine numeric size for placeholder URL
+      numeric_size = case size
+                     when :thumb then 80
+                     when :medium then 100 # Default placeholder size
+                     else size.is_a?(Integer) ? size : 100
+                     end
+      # Use CGI.escape for username in placeholder URL
+      "https://ui-avatars.com/api/?name=#{CGI.escape(username)}&size=#{numeric_size}"
     end
   end
 
-  # Avatar variants for optimization
+  # Avatar variants for optimization - returns URL path
   def avatar_variant(size = :medium)
-    return unless avatar.attached?
-    case size
-    when :thumb
-      avatar.variant(resize_to_fill: [80, 80]).processed
-    when :medium
-      avatar.variant(resize_to_limit: [400, 400]).processed
-    else
-      avatar
-    end
+    return nil unless avatar.attached? # Return nil if not attached
+
+    variant_options = case size
+                      when :thumb
+                        { resize_to_fill: [80, 80] }
+                      when :medium
+                        { resize_to_limit: [400, 400] }
+                      when Integer # Handle direct integer sizes
+                        { resize_to_limit: [size, size] }
+                      else # Default to medium if size is unrecognized symbol
+                        { resize_to_limit: [400, 400] }
+                      end
+
+    # Ensure the variant is processed before generating the URL
+    processed_variant = avatar.variant(variant_options).processed
+    # Use rails_representation_path with two arguments (Rails 8+)
+    Rails.application.routes.url_helpers.rails_representation_path(processed_variant, {})
   end
 
   def likes?(likeable)

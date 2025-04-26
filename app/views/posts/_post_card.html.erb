@@ -16,8 +16,7 @@
 
     <%# User Info %>
     <%= link_to user_path(post.user), class: "flex items-center space-x-3" do %>
-      <% avatar = post.user.avatar.attached? ? post.user.avatar_url(32) : "https://ui-avatars.com/api/?name=#{post.user.username}&size=32" %>
-      <%= image_tag avatar, class: "h-8 w-8 rounded-full object-cover border-2 border-gray-700" %>
+      <%= image_tag(post.user.avatar.attached? ? post.user.avatar_url(32) : post.user.avatar_url(32), class: "h-8 w-8 rounded-full object-cover border-2 border-gray-700") %>
       <span class="text-sm font-medium text-gray-200"><%= post.user.username %></span>
     <% end %>
 

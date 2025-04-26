@@ -1,12 +1,6 @@
 <li id="comment-<%= comment.id %>" class="flex items-start space-x-2 py-2 border-t border-gray-700">
   <div class="flex-shrink-0">
-    <% if comment.user.avatar.attached? %>
-      <%= image_tag comment.user.avatar_url(size: 24), class: "h-6 w-6 rounded-full" %>
-    <% else %>
-      <div class="h-6 w-6 rounded-full bg-gray-700 flex items-center justify-center">
-        <span class="text-xs text-gray-300"><%= comment.user.username.first.upcase %></span>
-      </div>
-    <% end %>
+    <%= image_tag(comment.user.avatar.attached? ? comment.user.avatar_url(size: 24) : comment.user.avatar_url(size: 24), class: "h-6 w-6 rounded-full") %>
   </div>
   
   <div class="flex-grow">

@@ -49,7 +49,7 @@
           <div class="p-4 border-b border-gray-800 flex items-center justify-between">
             <div class="flex items-center space-x-3">
               <%= link_to user_path(@post.user), class: "flex items-center group" do %>
-                <%= image_tag @post.user.avatar_variant(:thumb), class: "h-10 w-10 rounded-full object-cover border-2 border-gray-700/60 group-hover:border-teal-500 transition-all" %>
+                <%= image_tag(@post.user.avatar.attached? ? @post.user.avatar_variant(:thumb) : @post.user.avatar_url(:thumb), class: "h-10 w-10 rounded-full object-cover border-2 border-gray-700/60 group-hover:border-teal-500 transition-all") %>
                 <div class="ml-3">
                   <h3 class="font-semibold text-gray-100 group-hover:text-teal-400 transition-colors"><%= @post.user.username %></h3>
                 </div>
@@ -80,7 +80,7 @@
                 <h1 class="text-lg font-bold bg-gradient-to-r from-teal-400 to-blue-400 bg-clip-text text-transparent mb-2"><%= @post.title %></h1>
               <% end %>
               <div class="flex space-x-3">
-                <%= image_tag @post.user.avatar_variant(:thumb), class: "h-8 w-8 rounded-full object-cover flex-shrink-0" %>
+                <%= image_tag(@post.user.avatar.attached? ? @post.user.avatar_variant(:thumb) : @post.user.avatar_url(:thumb), class: "h-8 w-8 rounded-full object-cover flex-shrink-0") %>
                 <div>
                   <p class="text-gray-300 leading-relaxed">
                     <span class="font-semibold text-gray-100"><%= @post.user.username %></span>
@@ -90,7 +90,9 @@
                     <span><%= time_ago_in_words(@post.created_at) %> ago</span>
                     <% if @post.respond_to?(:location) && @post.location.present? %>
                       <span class="mx-1">•</span>
-                      <span><i class="fas fa-map-marker-alt mr-1"></i> <%= @post.location %></span>
+                      <span><i class="fas fa-map-marker-alt mr-1"></i> 
+                        <%= link_to @post.location, "https://maps.google.com/?q=#{ERB::Util.url_encode(@post.location)}", target: "_blank", rel: "noopener" %>
+                      </span>
                     <% end %>
                   </div>
                 </div>
@@ -103,7 +105,7 @@
                 <% @post.comments.order(created_at: :desc).each do |comment| %>
                   <div class="flex space-x-3 mb-4 group" id="comment-<%= comment.id %>">
                     <%= link_to user_path(comment.user) do %>
-                      <%= image_tag comment.user.avatar_variant(:thumb), class: "h-8 w-8 rounded-full object-cover flex-shrink-0" %>
+                      <%= image_tag(comment.user.avatar.attached? ? comment.user.avatar_variant(:thumb) : comment.user.avatar_url(:thumb), class: "h-8 w-8 rounded-full object-cover flex-shrink-0") %>
                     <% end %>
                     <div class="flex-1">
                       <div class="text-gray-200">
