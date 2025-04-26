@@ -34,7 +34,7 @@ gem "devise", '~> 4.9', '>= 4.9.4' # for user authentication
 gem "aws-sdk-s3", require: false # for image uploading to AWS S3
 gem "mini_magick" # for image processing
 gem "image_processing" # for image processing
-gem "friendly_id", '~> 5.4.0' # for user-friendly URLs
+gem "friendly_id", '~> 5.5.1' # for user-friendly URLs
 gem "devise-jwt" # for JWT authentication
 gem "devise_invitable" # for user invitations
 gem "devise-async" # for sending emails asynchronously
